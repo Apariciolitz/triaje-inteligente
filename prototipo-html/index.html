@@ -1,0 +1,1689 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Triaje Inteligente APF3</title>
+<style>:root{
+  --navy:#1d3557;--navy2:#24426b;--bg:#eef2f7;--card:#ffffff;--line:#d9e0ea;--txt:#1b2533;--mut:#5b6778;
+  --blue:#2f6fbf;--blue-s:#e8f0fb;--green:#2e7d32;--green-s:#e7f4e8;--red:#c62828;--red-s:#fdecec;
+  --amber:#b26a00;--amber-s:#fff4e0;--focus:#1a73e8;
+  --p1:#c62828;--p2:#e65100;--p3:#f9a825;--p4:#2e7d32;
+  font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{margin:0}
+.hidden{display:none!important}
+.sr{position:absolute;left:-9999px}
+/* header */
+header.top{background:var(--navy);color:#fff;display:flex;align-items:center;gap:14px;padding:10px 20px;flex-wrap:wrap}
+.logo{width:36px;height:36px;border-radius:8px;background:#fff;color:var(--navy);display:grid;place-items:center;font-weight:800}
+.ttl b{font-size:18px;display:block}.ttl span{font-size:12px;opacity:.85}
+.top .sp{flex:1}
+.chip{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:5px 12px;font-size:12.5px;white-space:nowrap}
+.seg{display:inline-flex;background:rgba(255,255,255,.12);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:#fff;border-radius:999px;padding:5px 12px;font-weight:700;cursor:pointer;font-size:12.5px}
+.seg button.on{background:#fff;color:var(--navy)}
+.seg button:disabled{cursor:not-allowed;opacity:.75}
+.btn-h{background:transparent;border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:999px;padding:5px 12px;cursor:pointer;font-size:12.5px}
+.btn-h:hover{background:rgba(255,255,255,.12)}
+.banner{background:#fff6d6;border-bottom:1px solid #f0dc9a;padding:8px 20px;font-size:12.5px}
+/* tabs */
+nav.tabs{display:flex;gap:4px;padding:14px 20px 0;flex-wrap:wrap}
+nav.tabs button{border:1px solid var(--line);border-bottom:0;background:#e3e9f1;border-radius:10px 10px 0 0;padding:9px 16px;font-weight:700;cursor:pointer;color:#33415a}
+nav.tabs button.on{background:#fff;color:var(--blue)}
+main{background:#fff;margin:0 20px 20px;border:1px solid var(--line);border-radius:0 12px 12px 12px;padding:18px;min-height:60vh}
+/* layout */
+.grid3{display:grid;grid-template-columns:240px 1fr 1fr;gap:16px;align-items:start}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+@media (max-width:1100px){.grid3{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
+.card{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--card);margin-bottom:14px}
+.card h3{font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:#46536a;margin-bottom:10px}
+.muted{color:var(--mut);font-size:12.5px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.row>.f{flex:1;min-width:140px}
+/* form */
+.f{margin-bottom:10px}
+.f label{display:block;font-weight:600;font-size:12.5px;margin-bottom:4px}
+.f label .req{color:var(--red)}
+.f input,.f select,.f textarea{width:100%;border:1px solid #c3ccd9;border-radius:8px;padding:8px 10px;background:#f8fafc}
+.f textarea{min-height:74px;resize:vertical}
+.f input:focus,.f select:focus,.f textarea:focus,button:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.f.bad input,.f.bad select,.f.bad textarea{border-color:var(--red);background:var(--red-s)}
+.f .err{color:var(--red);font-size:12px;margin-top:3px;min-height:0}
+.hint{color:var(--mut);font-size:11.5px;margin-top:3px}
+.f input:disabled{background:#eceff3;color:#8a94a3}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:13px;margin:6px 0}
+.chk input{margin-top:3px}
+.summary{border:1px solid var(--red);background:var(--red-s);color:#8e1b1b;border-radius:10px;padding:10px 12px;margin-bottom:12px}
+.summary ul{margin:6px 0 0 18px;padding:0}
+.ok-box{border:1px solid #a5d6a7;background:var(--green-s);color:#1b5e20;border-radius:10px;padding:10px 12px;margin:8px 0}
+.warn-box{border:1px solid #f3c77b;background:var(--amber-s);color:#7a4a00;border-radius:10px;padding:10px 12px;margin:8px 0}
+.info-box{border:1px solid #b9cdea;background:var(--blue-s);color:#1d3f6e;border-radius:10px;padding:10px 12px;margin:8px 0}
+/* buttons */
+.btn{border:1px solid var(--blue);background:#fff;color:var(--blue);border-radius:10px;padding:8px 14px;font-weight:700;cursor:pointer}
+.btn.pri{background:var(--blue);color:#fff}
+.btn.go{background:var(--green);border-color:var(--green);color:#fff}
+.btn.danger{border-color:var(--red);color:var(--red)}
+.btn.sm{padding:5px 10px;font-size:12.5px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+/* patients list */
+.plist .pi{border:1px solid var(--line);border-radius:10px;padding:9px 10px;margin-bottom:8px;cursor:pointer;background:#fff;width:100%;text-align:left}
+.plist .pi.on{border:2px solid var(--blue);background:var(--blue-s)}
+.plist .pi b{font-size:14px}
+.badge{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11.5px;font-weight:700;color:#fff;background:#6b7788}
+.badge.p1{background:var(--p1)}.badge.p2{background:var(--p2)}.badge.p3{background:var(--p3);color:#3b2b00}.badge.p4{background:var(--p4)}
+.badge.out{background:#fff;color:#33415a;border:1px solid var(--line)}
+.addp{width:100%;border:2px dashed var(--blue);background:#fff;color:var(--blue);border-radius:10px;padding:10px;font-weight:800;cursor:pointer}
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.steps div{border:1px solid var(--line);border-radius:10px;padding:7px 9px;font-size:12.5px;background:#f6f8fb;color:#6b7788}
+.steps div.done{color:#1b5e20;background:var(--green-s);border-color:#a5d6a7}
+.steps div.cur{color:var(--blue);background:var(--blue-s);border-color:var(--blue);font-weight:700}
+/* kv */
+.kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid #eef1f5}
+.kv:last-child{border-bottom:0}.kv b{text-align:right}
+.tag{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:3px 10px;margin:0 6px 6px 0;font-size:12.5px;background:#f6f8fb}
+.tag.hit{background:var(--blue-s);border-color:#b9cdea}
+/* vitals */
+.vgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media (max-width:700px){.vgrid{grid-template-columns:repeat(2,1fr)}}
+.vgrid .f{margin:0}
+.vgrid .nm{font-size:11.5px;display:flex;gap:5px;align-items:center;margin-top:4px;color:var(--mut)}
+.crit{color:var(--red);font-size:11.5px;font-weight:700}
+.alrt{color:var(--amber);font-size:11.5px;font-weight:700}
+/* suggestion */
+.sugg{display:flex;gap:14px;align-items:center}
+.pbox{width:150px;min-height:120px;border-radius:12px;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;text-align:center}
+.pbox .rom{font-size:44px;font-weight:900;line-height:1}
+.pbox small{font-size:12px;opacity:.9}
+.bar{height:10px;background:#e7ebf1;border-radius:999px;overflow:hidden}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,#f6c453,#e65100)}
+.contrib{display:grid;grid-template-columns:110px 1fr 46px;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #eef1f5;font-size:13px}
+.contrib .cb{height:8px;border-radius:999px;background:var(--blue)}
+.contrib .cb.neg{background:#9aa6b6}
+/* tables */
+table.t{width:100%;border-collapse:collapse;font-size:13px}
+table.t th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:#46536a;border-bottom:2px solid var(--line);padding:7px 6px}
+table.t td{border-bottom:1px solid #eef1f5;padding:7px 6px;vertical-align:top}
+table.t td.num{text-align:right;font-variant-numeric:tabular-nums}
+.tscroll{overflow-x:auto}
+.kpi{border:1px solid var(--line);border-radius:12px;padding:12px}
+.kpi .v{font-size:28px;font-weight:800;color:var(--blue)}
+.kpi .l{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:#46536a}
+.pass{color:var(--green);font-weight:700}.fail{color:var(--red);font-weight:700}
+.bars{display:flex;gap:10px;align-items:flex-end;height:150px;padding-top:10px}
+.bars .b{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.bars .b i{display:block;width:100%;border-radius:8px 8px 0 0;min-height:3px}
+.cm td,.cm th{text-align:center!important}
+.cm td.d{background:var(--green-s);font-weight:800}
+.cm td.under{background:var(--red-s)}
+/* login */
+.login-wrap{min-height:100vh;display:grid;place-items:center;background:linear-gradient(160deg,#1d3557,#3a5f8f)}
+.login{background:#fff;border-radius:16px;padding:26px;width:min(400px,92vw);box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.login h1{font-size:20px;margin-bottom:4px}
+/* patient view */
+.pview{position:fixed;inset:0;background:#fff;z-index:50;padding:30px;overflow:auto}
+.pview .big{font-size:26px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#1d3557;color:#fff;padding:10px 18px;border-radius:999px;z-index:80;font-size:13.5px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.toast.bad{background:var(--red)}
+dialog{border:0;border-radius:14px;padding:20px;max-width:520px;width:92vw;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(10,20,35,.45)}
+.mono{font-family:Consolas,"Courier New",monospace;font-size:12px;word-break:break-all}
+.small{font-size:12px}
+.right{text-align:right}
+hr.s{border:0;border-top:1px solid var(--line);margin:12px 0}
+.vgrid [id^="flag-"]{min-height:16px}
+.vgrid label.nm{display:flex;font-weight:400;margin:4px 0 0}
+.vgrid label.nm input{width:auto;margin:0}
+</style></head>
+<body><noscript>Este prototipo necesita JavaScript habilitado.</noscript>
+<script>/* =====================================================================
+   NÚCLEO DEL APLICATIVO · Triaje Inteligente (APF3)
+   Reglas de validación, padrón ficticio, modelo de demostración,
+   A*, métricas, K-Means, SHA-256/HMAC para auditoría y seudonimización.
+   No depende del DOM: se puede probar en Node.
+   ===================================================================== */
+(function (G) {
+  'use strict';
+  const C = {};
+
+  /* ---------------- utilidades ---------------- */
+  const pad = (n, l = 2) => String(n).padStart(l, '0');
+  C.pad = pad;
+  C.esc = s => String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  C.normTexto = s => String(s || '').toLowerCase().normalize('NFD')
+    .replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9ñ\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  const ok = (value, extra) => Object.assign({ ok: true, value }, extra || {});
+  const err = msg => ({ ok: false, msg });
+  C.edad = (fnacISO, ahora) => {
+    const f = new Date(fnacISO + 'T00:00:00');
+    let e = ahora.getFullYear() - f.getFullYear();
+    const m = ahora.getMonth() - f.getMonth();
+    if (m < 0 || (m === 0 && ahora.getDate() < f.getDate())) e--;
+    return e;
+  };
+
+  /* ---------------- DNI peruano ----------------
+     Dígito verificador: módulo 11 con pesos 3-2-7-6-5-4-3-2.
+     Puede figurar como número o como letra según el documento. */
+  const PESOS = [3, 2, 7, 6, 5, 4, 3, 2];
+  const DV_NUM = [6, 7, 8, 9, 0, 1, 1, 2, 3, 4, 5];
+  const DV_LET = ['K', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+  C.dvDNI = dni => {
+    let s = 0;
+    for (let i = 0; i < 8; i++) s += Number(dni[i]) * PESOS[i];
+    let k = 11 - (s % 11);
+    if (k === 11) k = 0;
+    return { numero: String(DV_NUM[k]), letra: DV_LET[k] };
+  };
+  const esSecuencia = s => {
+    const asc = '0123456789012345', desc = '9876543210987654';
+    return asc.includes(s) || desc.includes(s);
+  };
+  const todosIguales = s => /^(.)\1+$/.test(s);
+  C.validarDNI = (dniRaw, dvRaw) => {
+    const dni = String(dniRaw == null ? '' : dniRaw);
+    const dv = String(dvRaw == null ? '' : dvRaw).trim().toUpperCase();
+    if (dni.trim() === '') return err('Ingrese el número de DNI.');
+    if (/\s/.test(dni)) return err('El DNI no debe contener espacios.');
+    if (!/^\d+$/.test(dni)) return err('El DNI solo admite números del 0 al 9; no se permiten letras, guiones ni signos.');
+    if (dni.length !== 8) return err(`El DNI debe tener exactamente 8 dígitos (ingresó ${dni.length}).`);
+    if (todosIguales(dni)) return err('DNI no válido: no puede tener los 8 dígitos iguales (por ejemplo, 00000000 o 11111111).');
+    if (esSecuencia(dni)) return err('DNI no válido: es una secuencia correlativa (por ejemplo, 12345678 o 87654321).');
+    if (dv === '') return err('Ingrese el dígito verificador: es el carácter que aparece después del guion, junto al número de DNI.');
+    if (!/^[0-9A-K]$/.test(dv)) return err('El dígito verificador es un solo carácter: un número (0-9) o una letra de la A a la K.');
+    const c = C.dvDNI(dni);
+    if (dv !== c.numero && dv !== c.letra) return err('El dígito verificador no corresponde a este número de DNI. Revise el documento físico: el número o el dígito están mal digitados.');
+    return ok(dni, { dv });
+  };
+
+  /* Carné de extranjería y pasaporte */
+  C.validarCE = raw => {
+    const v = String(raw || '').trim().toUpperCase();
+    if (v === '') return err('Ingrese el número de carné de extranjería.');
+    if (!/^[A-Z0-9]+$/.test(v)) return err('El carné de extranjería solo admite letras y números, sin espacios ni signos.');
+    if (v.length < 8 || v.length > 12) return err(`El carné de extranjería debe tener entre 8 y 12 caracteres (ingresó ${v.length}).`);
+    if (!/\d/.test(v)) return err('El carné de extranjería debe contener al menos un número.');
+    if (todosIguales(v)) return err('Número no válido: todos los caracteres son iguales.');
+    if (/^\d+$/.test(v) && esSecuencia(v)) return err('Número no válido: es una secuencia correlativa.');
+    return ok(v);
+  };
+  C.validarPasaporte = raw => {
+    const v = String(raw || '').trim().toUpperCase();
+    if (v === '') return err('Ingrese el número de pasaporte.');
+    if (!/^[A-Z0-9]+$/.test(v)) return err('El pasaporte solo admite letras y números, sin espacios ni signos.');
+    if (v.length < 6 || v.length > 12) return err(`El pasaporte debe tener entre 6 y 12 caracteres (ingresó ${v.length}).`);
+    if (!/\d/.test(v)) return err('El pasaporte debe contener al menos un número.');
+    if (todosIguales(v)) return err('Número no válido: todos los caracteres son iguales.');
+    if (/^\d+$/.test(v) && esSecuencia(v)) return err('Número no válido: es una secuencia correlativa.');
+    return ok(v);
+  };
+
+  /* Nombres y apellidos */
+  const LETRA = 'A-Za-zÁÉÍÓÚÜÑáéíóúüñ';
+  const RE_NOMBRE = new RegExp(`^[${LETRA}]+(?:[ '\\-][${LETRA}]+)*$`);
+  C.validarNombre = (raw, etiqueta) => {
+    const v = String(raw || '');
+    const t = v.trim();
+    if (t === '') return err(`Ingrese ${etiqueta}.`);
+    if (/\d/.test(t)) return err(`${cap(etiqueta)} no puede contener números.`);
+    if (/ {2,}/.test(t)) return err(`${cap(etiqueta)} no puede tener espacios dobles.`);
+    if (!RE_NOMBRE.test(t)) return err(`${cap(etiqueta)} solo admite letras (con tildes y ñ), un espacio entre palabras, apóstrofo o guion.`);
+    if (t.replace(/[ '\-]/g, '').length < 2) return err(`${cap(etiqueta)} debe tener al menos 2 letras.`);
+    if (t.length > 40) return err(`${cap(etiqueta)} admite como máximo 40 caracteres (tiene ${t.length}).`);
+    if (/([A-Za-zÁÉÍÓÚÜÑáéíóúüñ])\1\1/i.test(t)) return err(`${cap(etiqueta)} no puede repetir la misma letra tres veces seguidas.`);
+    return ok(t);
+  };
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  /* Teléfono celular del Perú */
+  C.validarCelular = (raw, obligatorio) => {
+    const v = String(raw || '').trim();
+    if (v === '') return obligatorio ? err('Ingrese el número de celular de contacto.') : ok('');
+    if (!/^\d+$/.test(v)) return err('El celular solo admite números, sin espacios ni signos.');
+    if (v.length !== 9) return err(`El celular debe tener 9 dígitos (ingresó ${v.length}).`);
+    if (v[0] !== '9') return err('El celular en Perú debe empezar con 9.');
+    if (todosIguales(v.slice(1))) return err('Número de celular no válido: dígitos repetidos.');
+    return ok(v);
+  };
+
+  /* Fecha de nacimiento (AAAA-MM-DD) */
+  C.validarFechaNac = (raw, ahora) => {
+    const v = String(raw || '').trim();
+    if (v === '') return err('Ingrese la fecha de nacimiento.');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return err('La fecha de nacimiento no tiene un formato válido (día/mes/año).');
+    const [y, m, d] = v.split('-').map(Number);
+    const f = new Date(y, m - 1, d);
+    if (f.getFullYear() !== y || f.getMonth() !== m - 1 || f.getDate() !== d) return err('La fecha de nacimiento no existe en el calendario.');
+    const hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+    if (f > hoy) return err('La fecha de nacimiento no puede ser posterior a hoy.');
+    const e = C.edad(v, ahora);
+    if (e > 120) return err(`La fecha de nacimiento da una edad de ${e} años; el máximo aceptado es 120.`);
+    return ok(v, { edad: e });
+  };
+
+  C.validarEnteroRango = (raw, min, max, etiqueta) => {
+    const v = String(raw == null ? '' : raw).trim();
+    if (v === '') return err(`Ingrese ${etiqueta}.`);
+    if (!/^-?\d+$/.test(v)) return err(`${cap(etiqueta)} debe ser un número entero, sin decimales ni letras.`);
+    const n = Number(v);
+    if (n < min || n > max) return err(`${cap(etiqueta)} debe estar entre ${min} y ${max}.`);
+    return ok(n);
+  };
+
+  /* Texto libre genérico (motivos de cambio, señas, etc.) */
+  C.validarTexto = (raw, min, max, etiqueta) => {
+    const t = String(raw || '').trim().replace(/\s+/g, ' ');
+    if (t === '') return err(`Ingrese ${etiqueta}.`);
+    if (/[<>{}\\]/.test(t)) return err(`${cap(etiqueta)} no admite los signos < > { } ni barras invertidas.`);
+    const letras = (t.match(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g) || []).length;
+    if (t.length < min) return err(`${cap(etiqueta)} debe tener al menos ${min} caracteres (tiene ${t.length}).`);
+    if (t.length > max) return err(`${cap(etiqueta)} admite como máximo ${max} caracteres (tiene ${t.length}).`);
+    if (letras < Math.min(min, 8) || letras / t.replace(/ /g, '').length < 0.6) return err(`${cap(etiqueta)} debe estar redactado con palabras, no solo con números o signos.`);
+    if (/(.)\1{4,}/.test(t)) return err(`${cap(etiqueta)} no puede repetir el mismo carácter cinco o más veces seguidas.`);
+    if (t.split(' ').filter(w => /[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]{2,}/.test(w)).length < 2) return err(`${cap(etiqueta)} debe tener al menos dos palabras.`);
+    return ok(t);
+  };
+
+  /* Hora de llegada: HH:MM, no futura, máximo 12 h antes */
+  C.validarHoraLlegada = (raw, ahora) => {
+    const v = String(raw || '').trim();
+    if (v === '') return err('Ingrese la hora de llegada.');
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(v)) return err('La hora de llegada debe tener el formato HH:MM (00:00 a 23:59).');
+    const [h, m] = v.split(':').map(Number);
+    let t = new Date(ahora); t.setHours(h, m, 0, 0);
+    if (t > ahora) t = new Date(t.getTime() - 86400000); // fue ayer
+    const dif = (ahora - t) / 60000;
+    if (dif > 720) return err('La hora de llegada no puede ser de hace más de 12 horas ni posterior a la hora actual.');
+    return ok(t.toISOString(), { minutos: Math.round(dif) });
+  };
+
+  /* ---------------- Signos vitales ----------------
+     lim: valores fuera de [min,max] se consideran fisiológicamente imposibles
+     (error de digitación) y se rechazan.  critico: rangos de alarma que exigen
+     confirmación expresa y fuerzan la regla de seguridad. */
+  C.VITALES = [
+    { id: 'pas', nombre: 'Presión sistólica', corto: 'PAS', unidad: 'mmHg', min: 40, max: 300, dec: 0,
+      critico: v => v < 80 || v >= 220, alerta: v => (v >= 80 && v < 90) || (v >= 180 && v < 220) },
+    { id: 'pad', nombre: 'Presión diastólica', corto: 'PAD', unidad: 'mmHg', min: 20, max: 200, dec: 0,
+      critico: v => v >= 130, alerta: v => v >= 110 && v < 130 },
+    { id: 'fc', nombre: 'Frecuencia cardiaca', corto: 'FC', unidad: 'lpm', min: 20, max: 250, dec: 0,
+      critico: v => v < 40 || v > 150, alerta: v => (v >= 40 && v < 50) || (v > 120 && v <= 150) },
+    { id: 'fr', nombre: 'Frecuencia respiratoria', corto: 'FR', unidad: 'rpm', min: 4, max: 70, dec: 0,
+      critico: v => v < 8 || v > 35, alerta: v => v >= 25 && v <= 35 },
+    { id: 'temp', nombre: 'Temperatura', corto: 'T°', unidad: '°C', min: 30, max: 45, dec: 1,
+      critico: v => v < 34 || v >= 41, alerta: v => v >= 39.5 && v < 41 },
+    { id: 'spo2', nombre: 'Saturación de oxígeno', corto: 'SpO₂', unidad: '%', min: 40, max: 100, dec: 0,
+      critico: v => v < 85, alerta: v => v >= 85 && v <= 91 },
+    { id: 'glasgow', nombre: 'Escala de Glasgow', corto: 'Glasgow', unidad: 'pts', min: 3, max: 15, dec: 0,
+      critico: v => v <= 8, alerta: v => v >= 9 && v <= 13 },
+    { id: 'eva', nombre: 'Dolor (EVA)', corto: 'EVA', unidad: '/10', min: 0, max: 10, dec: 0,
+      critico: () => false, alerta: v => v >= 8 }
+  ];
+  C.MOTIVOS_NO_MEDIDO = ['Paciente inestable: se priorizó la atención inmediata', 'Paciente no colabora', 'Equipo no disponible o averiado', 'No aplica por condición del paciente'];
+  C.validarVital = (def, raw) => {
+    let v = String(raw == null ? '' : raw).trim().replace(',', '.');
+    if (v === '') return err(`Ingrese ${def.nombre.toLowerCase()} o marque «No medido» indicando el motivo.`);
+    if (/[eE+]/.test(v)) return err(`${def.nombre}: no se admite notación científica ni signos.`);
+    if (!/^-?\d+(\.\d+)?$/.test(v)) return err(`${def.nombre}: ingrese solo números${def.dec ? ' (use punto o coma para el decimal)' : ''}.`);
+    if (def.dec === 0 && v.includes('.')) return err(`${def.nombre} se registra en números enteros, sin decimales.`);
+    if (def.dec === 1 && /\.\d{2,}$/.test(v)) return err(`${def.nombre} admite como máximo un decimal.`);
+    const n = Number(v);
+    if (n < def.min || n > def.max) return err(`${def.nombre}: ${n} ${def.unidad} es fisiológicamente imposible o un error de digitación. Rango aceptado: ${def.min} a ${def.max} ${def.unidad}.`);
+    return ok(n, { critico: def.critico(n), alerta: def.alerta(n) });
+  };
+  /* reglas cruzadas */
+  C.validarVitalesCruzado = vit => {
+    const e = {};
+    if (vit.pas != null && vit.pad != null) {
+      if (vit.pad >= vit.pas) e.pad = 'La presión diastólica debe ser menor que la sistólica.';
+      else if (vit.pas - vit.pad < 10) e.pad = 'La diferencia entre sistólica y diastólica es menor de 10 mmHg: revise ambos valores.';
+    }
+    if (vit.pas == null && vit.pad != null) e.pas = 'Si registra la diastólica también debe registrar la sistólica.';
+    if (vit.pad == null && vit.pas != null) e.pad = 'Si registra la sistólica también debe registrar la diastólica.';
+    return e;
+  };
+
+  /* ---------------- Motivo de consulta + PLN ---------------- */
+  C.ABREVIATURAS = {
+    'dif resp': 'dificultad respiratoria', 'dif. resp': 'dificultad respiratoria', 'dolor tx': 'dolor toracico',
+    'dpt': 'dolor toracico', 'perd conc': 'perdida de conciencia', 'pdc': 'perdida de conciencia', 'tec': 'traumatismo encefalocraneano',
+    'hta': 'hipertension', 'dm': 'diabetes', 'fx': 'fractura', 'cv': 'convulsion', 'sat baja': 'saturacion baja',
+    'acv': 'accidente cerebrovascular', 'ira': 'infeccion respiratoria', 'eda': 'diarrea aguda', 'dabd': 'dolor abdominal'
+  };
+  /* términos (normalizados, sin tildes) → peso en log-odds y categoría; minPrior: prioridad mínima por regla */
+  C.TERMINOS = [
+    { t: ['dolor toracico', 'dolor en el pecho', 'dolor de pecho', 'opresion en el pecho'], w: 1.2, cat: 'Dolor torácico', min: 2 },
+    { t: ['dificultad respiratoria', 'falta de aire', 'disnea', 'no puede respirar', 'ahogo', 'saturacion baja'], w: 1.0, cat: 'Dificultad respiratoria' },
+    { t: ['silbido', 'silbidos', 'sibilancias'], w: 0.5, cat: 'Sibilancias' },
+    { t: ['perdida de conciencia', 'desmayo', 'sincope', 'inconsciente', 'no responde'], w: 1.2, cat: 'Alteración de conciencia', min: 2 },
+    { t: ['convulsion', 'convulsiones', 'convulsiona', 'convulsionando'], w: 1.4, cat: 'Convulsión', min: 2 },
+    { t: ['hemiparesia', 'debilidad en un lado', 'desviacion de boca', 'boca desviada', 'no puede hablar', 'accidente cerebrovascular', 'derrame cerebral'], w: 1.6, cat: 'Signos de ACV', min: 2 },
+    { t: ['sangrado', 'hemorragia', 'sangra'], w: 1.0, cat: 'Sangrado' },
+    { t: ['vomito con sangre', 'vomita sangre', 'hematemesis', 'heces negras', 'melena'], w: 1.3, cat: 'Sangrado digestivo', min: 2 },
+    { t: ['petequias', 'sangrado de encias', 'dolor abdominal intenso', 'vomitos persistentes', 'manchas rojas'], w: 1.8, cat: 'Signos de alarma de dengue', min: 2 },
+    { t: ['dengue', 'fiebre'], w: 0.3, cat: 'Fiebre / sospecha de dengue' },
+    { t: ['traumatismo', 'accidente', 'caida', 'golpe', 'choque', 'fractura'], w: 0.5, cat: 'Trauma' },
+    { t: ['traumatismo encefalocraneano'], w: 0.9, cat: 'Trauma de cráneo' },
+    { t: ['quemadura', 'quemado'], w: 0.6, cat: 'Quemadura' },
+    { t: ['intoxicacion', 'veneno', 'ingirio', 'sobredosis', 'organofosforado'], w: 1.0, cat: 'Intoxicación', min: 2 },
+    { t: ['intento suicida', 'intento de suicidio', 'autolesion', 'quiere matarse'], w: 1.5, cat: 'Riesgo autolesivo', min: 2 },
+    { t: ['cefalea subita', 'peor dolor de cabeza', 'dolor de cabeza subito'], w: 0.9, cat: 'Cefalea súbita', min: 2 },
+    { t: ['dolor abdominal', 'dolor de barriga', 'dolor de estomago'], w: 0.3, cat: 'Dolor abdominal' },
+    { t: ['diarrea', 'vomitos', 'vomito'], w: 0.2, cat: 'Síntomas digestivos' },
+    { t: ['dolor de garganta', 'resfrio', 'resfriado', 'tos leve', 'receta', 'control', 'certificado', 'chequeo'], w: -0.6, cat: 'Consulta de baja complejidad' }
+  ];
+  C.validarMotivo = raw => {
+    const t = String(raw || '').trim().replace(/\s+/g, ' ');
+    if (t === '') return err('Describa el motivo de consulta con las palabras del paciente o del acompañante.');
+    if (/[<>{}\\]/.test(t)) return err('El motivo de consulta no admite los signos < > { } ni barras invertidas (posible código).');
+    if (t.length < 10) return err(`El motivo de consulta debe tener al menos 10 caracteres (tiene ${t.length}).`);
+    if (t.length > 500) return err(`El motivo de consulta admite como máximo 500 caracteres (tiene ${t.length}).`);
+    const sinEsp = t.replace(/\s/g, '');
+    const letras = (t.match(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g) || []).length;
+    if (letras / sinEsp.length < 0.6) return err('El motivo de consulta debe redactarse con palabras; no puede ser mayormente números o signos.');
+    if (/(.)\1{4,}/i.test(t)) return err('El motivo de consulta no puede repetir el mismo carácter cinco o más veces seguidas.');
+    const palabras = t.split(' ').filter(w => /[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]{2,}/.test(w));
+    if (palabras.length < 2) return err('El motivo de consulta debe tener al menos dos palabras.');
+    const distintas = new Set(palabras.map(w => C.normTexto(w))).size;
+    if (palabras.length >= 3 && distintas === 1) return err('El motivo de consulta no puede ser la misma palabra repetida.');
+    return ok(t);
+  };
+  C.expandir = txt => {
+    let n = ' ' + C.normTexto(txt) + ' ';
+    for (const [a, b] of Object.entries(C.ABREVIATURAS)) {
+      const an = C.normTexto(a);
+      n = n.split(' ' + an + ' ').join(' ' + b + ' ');
+    }
+    return n.trim();
+  };
+  C.analizarTexto = txt => {
+    const n = ' ' + C.expandir(txt) + ' ';
+    const encontrados = [];
+    for (const g of C.TERMINOS) {
+      const hit = g.t.find(term => n.includes(' ' + term + ' ') || n.includes(' ' + term));
+      if (hit) encontrados.push({ cat: g.cat, termino: hit, w: g.w, min: g.min || null });
+    }
+    return { normalizado: n.trim(), encontrados };
+  };
+  /* Filtro de seudonimización del texto libre */
+  C.filtrarTexto = (txt, nombres) => {
+    let s = String(txt || '');
+    s = s.replace(/\b\d{8}\b/g, '[DOC]').replace(/\b9\d{8}\b/g, '[TEL]').replace(/\b[A-Z]{0,2}\d{6,12}\b/g, '[DOC]');
+    (nombres || []).filter(x => x && x.length >= 3).forEach(nm => {
+      const re = new RegExp('\\b' + nm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi');
+      s = s.replace(re, '[NOMBRE]');
+    });
+    return s;
+  };
+
+  /* ---------------- Modelo de demostración ----------------
+     Puntajes en log-odds con pesos ilustrativos (NO entrenados).
+     p = sigmoide(b0 + Σ contribuciones).  El modelo real (XGBoost + TF-IDF)
+     se entrenará con datos autorizados (APF3, sección 3.4). */
+  C.MODELO = { version: 'demo-0.3.0', estado: 'Modo sombra (no aprobado para producción)', b0: -4.6,
+    umbrales: { I: 0.80, II: 0.35, III: 0.12 } };
+  const sig = x => 1 / (1 + Math.exp(-x));
+  C.predecir = (p) => {
+    // p: {edad, sexo, llegada, gestante, vit:{...|null}, noMedido:{id:motivo}, hc:{cie:[], hospAnio, ultEmergDias}, motivo}
+    const c = [];
+    const add = (txt, w, fuente) => { if (w !== 0) c.push({ txt, w: Math.round(w * 100) / 100, fuente }); };
+    const v = p.vit || {};
+    const segRegla = []; // reglas de seguridad
+    if (v.spo2 != null) { if (v.spo2 < 85) add(`Saturación de O₂ muy baja (${v.spo2} %)`, 3.0, 'vital'); else if (v.spo2 <= 91) add(`Saturación de O₂ baja (${v.spo2} %)`, 1.6, 'vital'); else if (v.spo2 <= 94) add(`Saturación de O₂ limítrofe (${v.spo2} %)`, 0.6, 'vital'); }
+    if (v.pas != null) { if (v.pas < 80) add(`Presión sistólica muy baja (${v.pas} mmHg)`, 2.5, 'vital'); else if (v.pas < 90) add(`Presión sistólica baja (${v.pas} mmHg)`, 1.4, 'vital'); else if (v.pas >= 220) add(`Presión sistólica muy alta (${v.pas} mmHg)`, 1.5, 'vital'); else if (v.pas >= 180) add(`Presión sistólica alta (${v.pas} mmHg)`, 0.8, 'vital'); }
+    if (v.fc != null) { if (v.fc > 150 || v.fc < 40) add(`Frecuencia cardiaca crítica (${v.fc} lpm)`, 2.0, 'vital'); else if (v.fc > 120 || v.fc < 50) add(`Frecuencia cardiaca alterada (${v.fc} lpm)`, 1.0, 'vital'); else if (v.fc > 100) add(`Frecuencia cardiaca elevada (${v.fc} lpm)`, 0.4, 'vital'); }
+    if (v.fr != null) { if (v.fr > 35 || v.fr < 8) add(`Frecuencia respiratoria crítica (${v.fr} rpm)`, 2.2, 'vital'); else if (v.fr >= 25) add(`Frecuencia respiratoria alta (${v.fr} rpm)`, 1.1, 'vital'); else if (v.fr >= 21) add(`Frecuencia respiratoria algo elevada (${v.fr} rpm)`, 0.4, 'vital'); }
+    if (v.temp != null) { if (v.temp >= 41 || v.temp < 34) add(`Temperatura crítica (${v.temp} °C)`, 1.8, 'vital'); else if (v.temp >= 39.5) add(`Fiebre alta (${v.temp} °C)`, 0.7, 'vital'); else if (v.temp >= 38) add(`Fiebre (${v.temp} °C)`, 0.3, 'vital'); }
+    if (v.glasgow != null) { if (v.glasgow <= 8) add(`Glasgow ${v.glasgow}: compromiso grave de conciencia`, 3.0, 'vital'); else if (v.glasgow <= 13) add(`Glasgow ${v.glasgow}: conciencia alterada`, 1.6, 'vital'); else if (v.glasgow === 14) add('Glasgow 14', 0.6, 'vital'); }
+    if (v.eva != null) { if (v.eva >= 8) add(`Dolor intenso (EVA ${v.eva}/10)`, 0.6, 'vital'); else if (v.eva >= 5) add(`Dolor moderado (EVA ${v.eva}/10)`, 0.3, 'vital'); }
+    // faltantes informativos
+    const nm = p.noMedido || {};
+    const inest = Object.keys(nm).filter(k => nm[k] === C.MOTIVOS_NO_MEDIDO[0]);
+    if (inest.length) add(`Signos no medidos por inestabilidad (${inest.length})`, 0.8, 'faltante');
+    // demografía y llegada
+    if (p.edad != null) { if (p.edad >= 80) add(`Edad ${p.edad} años`, 0.9, 'demografia'); else if (p.edad >= 65) add(`Edad ${p.edad} años (65 o más)`, 0.6, 'demografia'); else if (p.edad < 1) add('Lactante menor de 1 año', 0.8, 'demografia'); }
+    if (p.llegada === 'Ambulancia') add('Llegó en ambulancia', 0.6, 'llegada');
+    if (p.gestante === 'Sí') add('Gestante', 0.5, 'demografia');
+    // historia clínica
+    const hc = p.hc || {};
+    const relevantes = (hc.cie || []).filter(x => x.relevante);
+    if (relevantes.length) add(`Historia clínica: ${relevantes.map(x => x.nombre).join(', ')}`, Math.min(0.75, 0.25 * relevantes.length), 'historia');
+    if (hc.hospAnio > 0) add(`${hc.hospAnio} hospitalización(es) en el último año`, 0.3, 'historia');
+    if (hc.ultEmergDias != null && hc.ultEmergDias <= 30) add(`Reingreso a emergencia en menos de 30 días (hace ${hc.ultEmergDias} días)`, 0.4, 'historia');
+    // texto
+    const nlp = C.analizarTexto(p.motivo || '');
+    nlp.encontrados.forEach(e => add(`Motivo de consulta: «${e.termino}» (${e.cat})`, e.w, 'texto'));
+    if (p.gestante === 'Sí' && nlp.encontrados.some(e => /Sangrado|Dolor abdominal/.test(e.cat))) add('Gestante con sangrado o dolor abdominal', 1.0, 'texto');
+    // probabilidad
+    const z = C.MODELO.b0 + c.reduce((s, x) => s + x.w, 0);
+    const prob = sig(z);
+    const u = C.MODELO.umbrales;
+    let prior = prob >= u.I ? 1 : prob >= u.II ? 2 : prob >= u.III ? 3 : 4;
+    // reglas de seguridad clínica (independientes del modelo)
+    const crit = C.VITALES.filter(d => v[d.id] != null && d.critico(v[d.id])).map(d => `${d.nombre} en rango crítico (${v[d.id]} ${d.unidad})`);
+    if (crit.length) segRegla.push({ min: 1, motivo: crit.join('; ') });
+    const txtMin = nlp.encontrados.filter(e => e.min).map(e => e.cat);
+    if (txtMin.length) segRegla.push({ min: 2, motivo: 'Signo de alarma en el motivo de consulta: ' + txtMin.join(', ') });
+    let priorFinal = prior;
+    segRegla.forEach(r => { if (priorFinal > r.min) priorFinal = r.min; });
+    c.sort((a, b) => Math.abs(b.w) - Math.abs(a.w));
+    return { prob, prioridadModelo: prior, prioridad: priorFinal, reglas: segRegla, contribuciones: c, nlp, version: C.MODELO.version };
+  };
+
+  C.PRIORIDADES = {
+    1: { rom: 'I', nombre: 'Emergencia · atención inmediata', corto: 'Atención inmediata', limite: 0, color: '#c62828',
+      paciente: 'Su vida puede estar en riesgo. Lo atienden de inmediato.' },
+    2: { rom: 'II', nombre: 'Urgencia mayor', corto: 'Urgencia mayor', limite: 10, color: '#e65100',
+      paciente: 'Su caso necesita atención pronta. Será atendido antes que las personas con casos menos graves.' },
+    3: { rom: 'III', nombre: 'Urgencia menor', corto: 'Urgencia menor', limite: 20, color: '#f9a825',
+      paciente: 'Su caso necesita evaluación médica, pero no hay riesgo inmediato para su vida. Primero se atiende a los casos más graves.' },
+    4: { rom: 'IV', nombre: 'Atención no urgente', corto: 'No urgente', limite: 60, color: '#2e7d32',
+      paciente: 'Su caso es de menor gravedad. Será atendido después de los casos urgentes o podrá ser derivado según evaluación médica.' }
+  };
+  C.DURACION_ATENCION = { 1: 30, 2: 20, 3: 15, 4: 10 }; // min (parámetros de demostración)
+  C.PESO_ESPERA = { 1: 8, 2: 4, 3: 2, 4: 1 };
+
+  /* ---------------- A* para ordenar la cola ----------------
+     Estado: pacientes ya asignados (máscara) + tiempos libres de los tópicos.
+     g(n): costo acumulado = Σ peso × espera + 10 × peso × exceso sobre el tiempo normado.
+     h(n): para cada paciente pendiente, costo si empezara en el tópico que antes se libera
+           (cota inferior → heurística admisible).
+     Restricción clínica: mientras haya Prioridad I pendiente, se asigna primero. */
+  C.costoPaciente = (pac, inicio) => {
+    const espera = Math.max(0, inicio - pac.llegada);
+    const exceso = Math.max(0, espera - C.PRIORIDADES[pac.prior].limite);
+    return C.PESO_ESPERA[pac.prior] * espera + 10 * C.PESO_ESPERA[pac.prior] * exceso;
+  };
+  C.simularOrden = (pacs, orden, libres) => {
+    const t = libres.slice().sort((a, b) => a - b);
+    let costo = 0; const plan = [];
+    for (const i of orden) {
+      const p = pacs[i]; const ini = Math.max(t[0], p.llegada);
+      costo += C.costoPaciente(p, ini);
+      plan.push({ i, inicio: ini });
+      t[0] = ini + C.DURACION_ATENCION[p.prior]; t.sort((a, b) => a - b);
+    }
+    return { costo, plan };
+  };
+  C.aEstrella = (pacs, libres, maxN = 9) => {
+    const n = pacs.length;
+    if (n === 0) return { orden: [], costo: 0, expandidos: 0, metodo: 'A*' };
+    if (n > maxN) { // respaldo voraz para colas grandes
+      const orden = pacs.map((p, i) => i).sort((a, b) => pacs[a].prior - pacs[b].prior || pacs[a].llegada - pacs[b].llegada);
+      return Object.assign(C.simularOrden(pacs, orden, libres), { orden, expandidos: 0, metodo: 'voraz (cola > ' + maxN + ')' });
+    }
+    const full = (1 << n) - 1;
+    const hI = (mask) => pacs.some((p, i) => !(mask & (1 << i)) && p.prior === 1);
+    const h = (mask, t) => { let s = 0; for (let i = 0; i < n; i++) if (!(mask & (1 << i))) s += C.costoPaciente(pacs[i], Math.max(t[0], pacs[i].llegada)); return s; };
+    const open = [{ mask: 0, t: libres.slice().sort((a, b) => a - b), g: 0, orden: [] }];
+    open[0].f = h(0, open[0].t);
+    const visto = new Map(); let exp = 0;
+    while (open.length) {
+      let bi = 0; for (let k = 1; k < open.length; k++) if (open[k].f < open[bi].f) bi = k;
+      const nodo = open.splice(bi, 1)[0];
+      if (nodo.mask === full) return { orden: nodo.orden, costo: nodo.g, expandidos: exp, metodo: 'A*' };
+      const clave = nodo.mask + '|' + nodo.t.join(',');
+      if (visto.has(clave) && visto.get(clave) <= nodo.g) continue;
+      visto.set(clave, nodo.g); exp++;
+      const soloI = hI(nodo.mask);
+      for (let i = 0; i < n; i++) {
+        if (nodo.mask & (1 << i)) continue;
+        if (soloI && pacs[i].prior !== 1) continue;
+        const ini = Math.max(nodo.t[0], pacs[i].llegada);
+        const t2 = nodo.t.slice(); t2[0] = ini + C.DURACION_ATENCION[pacs[i].prior]; t2.sort((a, b) => a - b);
+        const g2 = nodo.g + C.costoPaciente(pacs[i], ini);
+        const m2 = nodo.mask | (1 << i);
+        open.push({ mask: m2, t: t2, g: g2, orden: nodo.orden.concat(i), f: g2 + h(m2, t2) });
+      }
+    }
+    return { orden: [], costo: Infinity, expandidos: exp, metodo: 'A*' };
+  };
+
+  /* ---------------- Métricas ---------------- */
+  C.matriz = (pares) => { // pares: [{ref, pred}] con valores 1..4
+    const m = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+    pares.forEach(x => m[x.ref - 1][x.pred - 1]++);
+    return m;
+  };
+  C.kappa = (pares) => {
+    const n = pares.length; if (n < 2) return null;
+    const m = C.matriz(pares);
+    let po = 0; for (let i = 0; i < 4; i++) po += m[i][i]; po /= n;
+    let pe = 0; for (let i = 0; i < 4; i++) { const r = m[i].reduce((a, b) => a + b, 0); const c = m.reduce((a, row) => a + row[i], 0); pe += (r / n) * (c / n); }
+    if (pe === 1) return po === 1 ? 1 : 0;
+    return (po - pe) / (1 - pe);
+  };
+  C.metricasCriticas = (pares) => { // positivo = prioridad I o II
+    let vp = 0, fp = 0, fn = 0, vn = 0;
+    pares.forEach(x => { const r = x.ref <= 2, p = x.pred <= 2; if (r && p) vp++; else if (!r && p) fp++; else if (r && !p) fn++; else vn++; });
+    return { vp, fp, fn, vn, recall: vp + fn ? vp / (vp + fn) : null, precision: vp + fp ? vp / (vp + fp) : null };
+  };
+  C.f1Macro = (pares) => {
+    const m = C.matriz(pares); const f = [];
+    for (let k = 0; k < 4; k++) {
+      const vp = m[k][k], fn = m[k].reduce((a, b) => a + b, 0) - vp, fp = m.reduce((a, r) => a + r[k], 0) - vp;
+      if (vp + fn === 0 && vp + fp === 0) continue; // clase ausente
+      const p = vp + fp ? vp / (vp + fp) : 0, r = vp + fn ? vp / (vp + fn) : 0;
+      f.push(p + r ? 2 * p * r / (p + r) : 0);
+    }
+    return f.length ? f.reduce((a, b) => a + b, 0) / f.length : null;
+  };
+  C.auroc = (puntajes, etiquetas) => { // Mann–Whitney
+    const pos = [], neg = [];
+    puntajes.forEach((s, i) => (etiquetas[i] ? pos : neg).push(s));
+    if (!pos.length || !neg.length) return null;
+    let s = 0; pos.forEach(a => neg.forEach(b => { s += a > b ? 1 : a === b ? 0.5 : 0; }));
+    return s / (pos.length * neg.length);
+  };
+
+  /* ---------------- K-Means + silueta ---------------- */
+  C.kmeans = (X, k, iter = 50) => {
+    const n = X.length; if (n < k + 1) return null;
+    const d2 = (a, b) => a.reduce((s, v, i) => s + (v - b[i]) ** 2, 0);
+    const cent = [X[0].slice()]; // k-means++ determinista: el más lejano
+    while (cent.length < k) { let bi = 0, bd = -1; X.forEach((x, i) => { const d = Math.min(...cent.map(c => d2(x, c))); if (d > bd) { bd = d; bi = i; } }); cent.push(X[bi].slice()); }
+    let lab = new Array(n).fill(0);
+    for (let it = 0; it < iter; it++) {
+      const nl = X.map(x => { let bi = 0, bd = Infinity; cent.forEach((c, j) => { const d = d2(x, c); if (d < bd) { bd = d; bi = j; } }); return bi; });
+      const cambio = nl.some((l, i) => l !== lab[i]); lab = nl;
+      for (let j = 0; j < k; j++) { const mi = X.filter((_, i) => lab[i] === j); if (mi.length) cent[j] = mi[0].map((_, d) => mi.reduce((s, x) => s + x[d], 0) / mi.length); }
+      if (!cambio && it > 0) break;
+    }
+    return { lab, cent };
+  };
+  C.silueta = (X, lab) => {
+    const n = X.length; const ks = [...new Set(lab)]; if (ks.length < 2) return null;
+    const d = (a, b) => Math.sqrt(a.reduce((s, v, i) => s + (v - b[i]) ** 2, 0));
+    let tot = 0;
+    for (let i = 0; i < n; i++) {
+      const mismo = X.filter((_, j) => j !== i && lab[j] === lab[i]);
+      if (!mismo.length) continue; // silueta 0 para clústeres unitarios
+      const a = mismo.reduce((s, x) => s + d(X[i], x), 0) / mismo.length;
+      let b = Infinity;
+      ks.filter(c => c !== lab[i]).forEach(c => { const o = X.filter((_, j) => lab[j] === c); b = Math.min(b, o.reduce((s, x) => s + d(X[i], x), 0) / o.length); });
+      tot += (b - a) / Math.max(a, b);
+    }
+    return tot / n;
+  };
+
+  /* ---------------- SHA-256 / HMAC (puro JS) ---------------- */
+  C.sha256 = (ascii) => {
+    const msg = unescape(encodeURIComponent(ascii));
+    const K = []; const H = []; let p = 2, c = 0;
+    const isP = n => { for (let f = 2; f * f <= n; f++) if (n % f === 0) return false; return true; };
+    while (c < 64) { if (isP(p)) { if (c < 8) H[c] = (Math.pow(p, 1 / 2) * 0x100000000) | 0; K[c++] = (Math.pow(p, 1 / 3) * 0x100000000) | 0; } p++; }
+    const bytes = []; for (let i = 0; i < msg.length; i++) bytes.push(msg.charCodeAt(i));
+    const l = bytes.length * 8; bytes.push(0x80); while (bytes.length % 64 !== 56) bytes.push(0);
+    for (let i = 7; i >= 0; i--) bytes.push(i >= 4 ? 0 : (l >>> (i * 8)) & 0xff);
+    const r = (x, n) => (x >>> n) | (x << (32 - n));
+    const h = H.slice();
+    for (let o = 0; o < bytes.length; o += 64) {
+      const w = [];
+      for (let i = 0; i < 16; i++) w[i] = (bytes[o + 4 * i] << 24) | (bytes[o + 4 * i + 1] << 16) | (bytes[o + 4 * i + 2] << 8) | bytes[o + 4 * i + 3];
+      for (let i = 16; i < 64; i++) { const s0 = r(w[i - 15], 7) ^ r(w[i - 15], 18) ^ (w[i - 15] >>> 3); const s1 = r(w[i - 2], 17) ^ r(w[i - 2], 19) ^ (w[i - 2] >>> 10); w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0; }
+      let [a, b, cc, d, e, f, g, hh] = h;
+      for (let i = 0; i < 64; i++) {
+        const t1 = (hh + (r(e, 6) ^ r(e, 11) ^ r(e, 25)) + ((e & f) ^ (~e & g)) + K[i] + w[i]) | 0;
+        const t2 = ((r(a, 2) ^ r(a, 13) ^ r(a, 22)) + ((a & b) ^ (a & cc) ^ (b & cc))) | 0;
+        hh = g; g = f; f = e; e = (d + t1) | 0; d = cc; cc = b; b = a; a = (t1 + t2) | 0;
+      }
+      h[0] = (h[0] + a) | 0; h[1] = (h[1] + b) | 0; h[2] = (h[2] + cc) | 0; h[3] = (h[3] + d) | 0;
+      h[4] = (h[4] + e) | 0; h[5] = (h[5] + f) | 0; h[6] = (h[6] + g) | 0; h[7] = (h[7] + hh) | 0;
+    }
+    return h.map(x => (x >>> 0).toString(16).padStart(8, '0')).join('');
+  };
+  C.hmac = (clave, msg) => { // HMAC simplificado sobre texto (suficiente para la demostración)
+    return C.sha256(clave + ':' + C.sha256(clave + '|' + msg));
+  };
+  C.CLAVE_DEMO = 'clave-institucional-DEMO-no-usar-en-produccion';
+  C.seudonimo = (tipo, num) => 'P-' + C.hmac(C.CLAVE_DEMO, tipo + ':' + num).slice(0, 10).toUpperCase();
+
+  /* ---------------- Padrón ficticio (simula RENIEC + acreditación) ---------------- */
+  C.PADRON = [
+    { dni: '45872316', nombres: 'Rosa Elvira', ap1: 'Chumacero', ap2: 'Querevalú', sexo: 'F', fnac: '1958-03-14', seguro: 'Activo',
+      hc: { alergias: ['Ácido acetilsalicílico'], medicacion: ['Salbutamol inhalado', 'Enalapril 10 mg'], cie: [{ cod: 'J45', nombre: 'Asma', relevante: true }, { cod: 'I10', nombre: 'Hipertensión arterial', relevante: true }], hospAnio: 1, ultEmergDias: 12, ultEmergMotivo: 'crisis asmática' } },
+    { dni: '70345128', nombres: 'Luis Alberto', ap1: 'Zapata', ap2: 'Ramos', sexo: 'M', fnac: '1999-07-02', seguro: 'Activo',
+      hc: { alergias: [], medicacion: [], cie: [], hospAnio: 0, ultEmergDias: null } },
+    { dni: '41239870', nombres: 'Carmen Julia', ap1: 'Sosa', ap2: 'Vílchez', sexo: 'F', fnac: '1990-11-20', seguro: 'Activo',
+      hc: { alergias: ['Penicilina'], medicacion: [], cie: [{ cod: 'K29', nombre: 'Gastritis', relevante: false }], hospAnio: 0, ultEmergDias: 210, ultEmergMotivo: 'dolor abdominal' } },
+    { dni: '08765431', nombres: 'Jorge Manuel', ap1: 'Ipanaqué', ap2: 'Silva', sexo: 'M', fnac: '1946-01-30', seguro: 'Activo',
+      hc: { alergias: [], medicacion: ['Metformina 850 mg', 'Furosemida 40 mg'], cie: [{ cod: 'I50', nombre: 'Insuficiencia cardiaca', relevante: true }, { cod: 'E11', nombre: 'Diabetes tipo 2', relevante: true }, { cod: 'N18', nombre: 'Enfermedad renal crónica', relevante: true }], hospAnio: 2, ultEmergDias: 45, ultEmergMotivo: 'descompensación cardiaca' } },
+    { dni: '76019284', nombres: 'Valeria Nicole', ap1: 'Castillo', ap2: 'Merino', sexo: 'F', fnac: '2011-05-09', seguro: 'Activo',
+      hc: { alergias: [], medicacion: ['Salbutamol inhalado'], cie: [{ cod: 'J45', nombre: 'Asma', relevante: true }], hospAnio: 0, ultEmergDias: 95, ultEmergMotivo: 'crisis asmática leve' } },
+    { dni: '47561209', nombres: 'Pedro Pablo', ap1: 'Yarlequé', ap2: 'Coveñas', sexo: 'M', fnac: '1975-09-15', seguro: 'Inactivo',
+      hc: null },
+    { dni: '02948173', nombres: 'Teresa de Jesús', ap1: 'Morales', ap2: 'Lama', sexo: 'F', fnac: '1938-12-01', seguro: 'Activo', fallecido: true, hc: null },
+    { dni: '72830461', nombres: 'Diego Armando', ap1: 'Ruiz', ap2: 'Céspedes', sexo: 'M', fnac: '2003-02-28', seguro: 'Activo',
+      hc: { alergias: ['Fenitoína'], medicacion: ['Levetiracetam 500 mg'], cie: [{ cod: 'G40', nombre: 'Epilepsia', relevante: true }], hospAnio: 1, ultEmergDias: 20, ultEmergMotivo: 'crisis convulsiva' } },
+    { dni: '43176502', nombres: 'Lucía Fernanda', ap1: 'Nole', ap2: 'Prieto', sexo: 'F', fnac: '1985-06-18', seguro: 'Activo',
+      hc: { alergias: [], medicacion: [], cie: [], hospAnio: 0, ultEmergDias: null } },
+    { dni: '61034927', nombres: 'Mateo Sebastián', ap1: 'Correa', ap2: 'Atoche', sexo: 'M', fnac: '2024-08-10', seguro: 'Activo',
+      hc: { alergias: [], medicacion: [], cie: [], hospAnio: 0, ultEmergDias: null } }
+  ];
+  C.buscarPadron = dni => C.PADRON.find(p => p.dni === dni) || null;
+
+  /* ---------------- Usuarios de demostración ---------------- */
+  C.USUARIOS = [
+    { usuario: 'enfermera1', clave: 'Triaje2026!', nombre: 'Lic. Ana Torres (ficticio)', rol: 'enfermera', colegiatura: 'CEP 000001 (ficticio)' },
+    { usuario: 'medico.jefe', clave: 'Jefe2026!', nombre: 'Dr. Carlos Paz (ficticio)', rol: 'jefe', colegiatura: 'CMP 000002 (ficticio)' },
+    { usuario: 'comite', clave: 'Comite2026!', nombre: 'Comité de modelo (ficticio)', rol: 'comite', colegiatura: '—' }
+  ];
+  C.ROLES = {
+    enfermera: { nombre: 'Enfermera de triaje', tabs: ['triaje', 'explicacion', 'tablero', 'registro', 'reglas', 'guia'] },
+    jefe: { nombre: 'Médico jefe de emergencia', tabs: ['triaje', 'explicacion', 'tablero', 'registro', 'modelo', 'reglas', 'guia'] },
+    comite: { nombre: 'Comité de modelo', tabs: ['tablero', 'registro', 'modelo', 'reglas', 'guia'] }
+  };
+  C.validarLogin = (u, c) => {
+    if (String(u || '').trim() === '') return err('Ingrese su usuario.');
+    if (String(c || '') === '') return err('Ingrese su contraseña.');
+    const x = C.USUARIOS.find(z => z.usuario === String(u).trim().toLowerCase() && z.clave === c);
+    return x ? ok(x) : err('Usuario o contraseña incorrectos.');
+  };
+
+  G.Core = C;
+  if (typeof module !== 'undefined') module.exports = C;
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>/* =====================================================================
+   INTERFAZ · Triaje Inteligente (APF3) · prototipo académico, datos ficticios
+   ===================================================================== */
+(function () {
+  'use strict';
+  const C = window.Core, esc = C.esc, pad = C.pad;
+  const KEY = 'triaje_apf3_v1';
+  const INACTIVIDAD_MIN = 15;
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+  /* ---------------- estado ---------------- */
+  const nuevoEstado = () => ({
+    v: 1, offset: 0, modo: 'piloto', lineaBase: null, contador: 0, nn: 0,
+    pacientes: [], audit: [], topicos: [{ id: 'T1', pac: null }, { id: 'T2', pac: null }, { id: 'T3', pac: null }],
+    sesion: null, intentos: 0, bloqueoHasta: 0
+  });
+  let S = nuevoEstado();
+  function cargar() {
+    try { const raw = localStorage.getItem(KEY); if (raw) { const x = JSON.parse(raw); if (x && x.v === 1) S = Object.assign(nuevoEstado(), x); } } catch (e) { /* sin almacenamiento */ }
+  }
+  function guardar() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* sin almacenamiento */ } }
+  const ahora = () => new Date(Date.now() + S.offset);
+  const hhmm = iso => { const d = new Date(iso); return pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+  const minDesde = iso => Math.max(0, Math.round((ahora() - new Date(iso)) / 60000));
+  const minEntre = (a, b) => Math.round((new Date(b) - new Date(a)) / 60000);
+  const usuario = () => S.sesion && C.USUARIOS.find(u => u.usuario === S.sesion.usuario);
+  const rol = () => (usuario() || {}).rol;
+  const P = id => S.pacientes.find(p => p.id === id);
+  const enSala = () => S.pacientes.filter(p => ['registrado', 'clasificado', 'en_atencion'].includes(p.estado));
+  const pr = n => C.PRIORIDADES[n];
+  const ini = p => p.decision.priorInicial || p.decision.prior;
+  const badge = n => n ? `<span class="badge p${n}">${pr(n).rom}</span>` : '<span class="badge">Pendiente</span>';
+
+  /* ---------------- auditoría con cadena de hash ---------------- */
+  function auditar(accion, pac, detalle) {
+    const u = usuario();
+    const prev = S.audit.length ? S.audit[S.audit.length - 1].hash : '0'.repeat(64);
+    const ev = { n: S.audit.length + 1, ts: ahora().toISOString(), usuario: u ? u.usuario : 'sistema', rol: u ? u.rol : '-', accion,
+      ref: pac ? pac.seudo : '-', codigo: pac ? pac.id : '-', modelo: C.MODELO.version, modo: S.modo, detalle: detalle || '', prev };
+    ev.hash = C.sha256(prev + JSON.stringify(Object.assign({}, ev, { hash: undefined })));
+    S.audit.push(ev);
+  }
+  function verificarCadena() {
+    let prev = '0'.repeat(64);
+    for (const ev of S.audit) {
+      if (ev.prev !== prev) return { ok: false, n: ev.n };
+      const h = C.sha256(prev + JSON.stringify(Object.assign({}, ev, { hash: undefined })));
+      if (h !== ev.hash) return { ok: false, n: ev.n };
+      prev = ev.hash;
+    }
+    return { ok: true };
+  }
+
+  /* ---------------- utilidades de UI ---------------- */
+  function toast(msg, bad) {
+    const t = document.createElement('div'); t.className = 'toast' + (bad ? ' bad' : ''); t.setAttribute('role', 'status'); t.textContent = msg;
+    document.body.appendChild(t); setTimeout(() => t.remove(), 3200);
+  }
+  function confirmar(titulo, texto, palabra) {
+    return new Promise(res => {
+      const d = document.createElement('dialog');
+      d.innerHTML = `<h3 style="margin-bottom:8px">${esc(titulo)}</h3><p>${esc(texto)}</p>
+        ${palabra ? `<div class="f"><label for="cf-w">Escriba <b>${esc(palabra)}</b> para confirmar</label><input id="cf-w" autocomplete="off"><div class="err" id="err-cf-w"></div></div>` : ''}
+        <div class="row" style="justify-content:flex-end"><button class="btn" data-r="0">Cancelar</button><button class="btn pri" data-r="1">Confirmar</button></div>`;
+      document.body.appendChild(d); d.showModal();
+      d.addEventListener('click', e => {
+        const b = e.target.closest('button[data-r]'); if (!b) return;
+        if (b.dataset.r === '1' && palabra && $('#cf-w', d).value.trim() !== palabra) { $('#err-cf-w', d).textContent = `Debe escribir exactamente ${palabra}.`; return; }
+        d.close(); d.remove(); res(b.dataset.r === '1');
+      });
+      d.addEventListener('cancel', () => { d.remove(); res(false); });
+    });
+  }
+  const fld = (id, label, input, opts = {}) => `<div class="f" id="f-${id}"><label for="${id}">${label}${opts.req ? ' <span class="req" aria-hidden="true">*</span>' : ''}</label>${input}<div class="err" id="err-${id}" aria-live="polite"></div>${opts.hint ? `<div class="hint">${opts.hint}</div>` : ''}</div>`;
+  function setErr(id, msg) {
+    const f = document.getElementById('f-' + id), e = document.getElementById('err-' + id), i = document.getElementById(id);
+    if (f) f.classList.toggle('bad', !!msg);
+    if (e) e.textContent = msg || '';
+    if (i) i.setAttribute('aria-invalid', msg ? 'true' : 'false');
+  }
+  function mostrarResumen(cont, errores) {
+    const box = $(cont); if (!box) return;
+    const lista = Object.entries(errores);
+    if (!lista.length) { box.innerHTML = ''; return; }
+    box.innerHTML = `<div class="summary" role="alert"><b>Corrija ${lista.length} campo(s) antes de continuar:</b><ul>${lista.map(([k, m]) => `<li><a href="#${k}" data-focus="${k}">${esc(m)}</a></li>`).join('')}</ul></div>`;
+    const first = document.getElementById(lista[0][0]); if (first) first.focus();
+  }
+  const opt = (arr, sel, ph) => (ph ? `<option value="">${esc(ph)}</option>` : '') + arr.map(o => { const v = typeof o === 'string' ? o : o.v, t = typeof o === 'string' ? o : o.t; return `<option value="${esc(v)}"${v === sel ? ' selected' : ''}>${esc(t)}</option>`; }).join('');
+
+  /* ---------------- sesión ---------------- */
+  let tab = 'triaje', selId = null, nuevo = false, regTmp = null, explId = null, decTmp = null;
+  let ultimaAct = Date.now();
+  ['click', 'keydown'].forEach(ev => document.addEventListener(ev, () => { ultimaAct = Date.now(); }, true));
+  setInterval(() => {
+    if (S.sesion && Date.now() - ultimaAct > INACTIVIDAD_MIN * 60000) { auditar('Cierre de sesión por inactividad'); S.sesion = null; guardar(); render(); toast(`Sesión cerrada tras ${INACTIVIDAD_MIN} minutos de inactividad.`, true); }
+    if (!S.sesion && S.bloqueoHasta > Date.now()) { const s = $('#lg-bloq'); if (s) s.textContent = `Acceso bloqueado por 3 intentos fallidos. Espere ${Math.ceil((S.bloqueoHasta - Date.now()) / 1000)} s.`; }
+    else if (!S.sesion && $('#lg-bloq') && $('#lg-bloq').textContent) { $('#lg-bloq').textContent = ''; $('#lg-btn').disabled = false; }
+  }, 1000);
+
+  function renderLogin() {
+    document.body.innerHTML = `<div class="login-wrap"><form class="login" id="lg" novalidate>
+      <div class="row" style="align-items:center;margin-bottom:12px"><div class="logo" style="background:var(--navy);color:#fff">T</div><div><h1>Triaje Inteligente</h1><div class="muted">Prototipo académico APF3 · datos ficticios</div></div></div>
+      <div id="lg-sum"></div>
+      ${fld('lg-u', 'Usuario', '<input id="lg-u" autocomplete="username" maxlength="40">', { req: true })}
+      ${fld('lg-c', 'Contraseña', '<input id="lg-c" type="password" autocomplete="current-password" maxlength="40">', { req: true })}
+      <div class="err" id="lg-bloq" style="color:var(--red);font-size:12.5px;margin-bottom:8px"></div>
+      <button class="btn pri" id="lg-btn" style="width:100%">Ingresar</button>
+      <p class="muted" style="margin-top:12px">Usuarios de prueba en la pestaña «Guía» del aplicativo: <b>enfermera1</b> / Triaje2026!, <b>medico.jefe</b> / Jefe2026!, <b>comite</b> / Comite2026!</p>
+    </form></div>`;
+    if (S.bloqueoHasta > Date.now()) $('#lg-btn').disabled = true;
+    $('#lg').addEventListener('submit', e => {
+      e.preventDefault();
+      if (S.bloqueoHasta > Date.now()) return;
+      setErr('lg-u', ''); setErr('lg-c', '');
+      const u = $('#lg-u').value, c = $('#lg-c').value;
+      if (!u.trim()) { setErr('lg-u', 'Ingrese su usuario.'); $('#lg-u').focus(); return; }
+      if (!c) { setErr('lg-c', 'Ingrese su contraseña.'); $('#lg-c').focus(); return; }
+      const r = C.validarLogin(u, c);
+      if (!r.ok) {
+        S.intentos++;
+        if (S.intentos >= 3) { S.bloqueoHasta = Date.now() + 60000; S.intentos = 0; $('#lg-btn').disabled = true; $('#lg-bloq').textContent = 'Acceso bloqueado por 3 intentos fallidos. Espere 60 s.'; }
+        else setErr('lg-c', `${r.msg} Intentos restantes: ${3 - S.intentos}.`);
+        guardar(); return;
+      }
+      S.intentos = 0; S.sesion = { usuario: r.value.usuario, desde: ahora().toISOString() }; ultimaAct = Date.now();
+      auditar('Inicio de sesión'); guardar();
+      tab = C.ROLES[r.value.rol].tabs[0]; render();
+    });
+    $('#lg-u').focus();
+  }
+
+  /* ---------------- marco general ---------------- */
+  const TABS = { triaje: 'Triaje', explicacion: 'Explicación', tablero: 'Tablero', registro: 'Registro y auditoría', modelo: 'Modelo', reglas: 'Reglas y pruebas', guia: 'Guía' };
+  function render() {
+    if (!S.sesion) { renderLogin(); return; }
+    const u = usuario(); const permit = C.ROLES[u.rol].tabs;
+    if (!permit.includes(tab)) tab = permit[0];
+    const puedeModo = u.rol !== 'enfermera';
+    document.body.innerHTML = `
+    <header class="top">
+      <div class="logo">T</div>
+      <div class="ttl"><b>Triaje Inteligente · APF3</b><span>Servicio de Emergencia · prototipo académico con datos ficticios</span></div>
+      <div class="sp"></div>
+      <div class="seg" role="group" aria-label="Modo de operación">
+        <button data-act="modo" data-v="piloto" class="${S.modo === 'piloto' ? 'on' : ''}" ${puedeModo ? '' : 'disabled title="Solo el médico jefe o el comité de modelo pueden cambiar el modo"'}>Piloto asistido</button>
+        <button data-act="modo" data-v="sombra" class="${S.modo === 'sombra' ? 'on' : ''}" ${puedeModo ? '' : 'disabled title="Solo el médico jefe o el comité de modelo pueden cambiar el modo"'}>Modo sombra</button>
+      </div>
+      <span class="chip" id="reloj" title="Hora simulada del turno">Hora ${hhmm(ahora().toISOString())}</span>
+      <button class="btn-h" data-act="reloj" data-min="10" title="Simula el paso del tiempo para probar esperas y revaloraciones">+10 min</button>
+      <span class="chip">${esc(u.nombre)} · ${esc(C.ROLES[u.rol].nombre)}</span>
+      ${u.rol === 'jefe' ? '<button class="btn-h" data-act="reset">Reiniciar demo</button>' : ''}
+      <button class="btn-h" data-act="logout">Cerrar sesión</button>
+    </header>
+    <div class="banner"><b>Prototipo demostrativo con datos ficticios.</b> El padrón simula RENIEC y la historia clínica; la sugerencia usa un modelo de demostración con pesos ilustrativos (no entrenado). El modelo real (XGBoost + PLN) requiere datos autorizados. <b>La decisión final siempre es del profesional.</b>
+      ${S.modo === 'sombra' ? '<br><b>MODO SOMBRA ACTIVO:</b> el personal no ve la sugerencia; el sistema la guarda para compararla con la decisión profesional.' : ''}</div>
+    <nav class="tabs" role="tablist">${permit.map(k => `<button role="tab" data-act="tab" data-v="${k}" class="${tab === k ? 'on' : ''}" aria-selected="${tab === k}">${TABS[k]}</button>`).join('')}</nav>
+    <main id="main"></main>`;
+    ({ triaje: rTriaje, explicacion: rExplicacion, tablero: rTablero, registro: rRegistro, modelo: rModelo, reglas: rReglas, guia: rGuia })[tab]();
+  }
+
+  document.addEventListener('click', async e => {
+    const a = e.target.closest('[data-act]'); const fo = e.target.closest('[data-focus]');
+    if (fo) { e.preventDefault(); const el = document.getElementById(fo.dataset.focus); if (el) el.focus(); return; }
+    if (!a) return;
+    const act = a.dataset.act, v = a.dataset.v;
+    if (act === 'tab') { tab = v; render(); }
+    else if (act === 'logout') { auditar('Cierre de sesión'); S.sesion = null; guardar(); render(); }
+    else if (act === 'modo') {
+      if (rol() === 'enfermera' || v === S.modo) return;
+      if (!await confirmar('Cambiar modo de operación', v === 'sombra' ? 'En modo sombra el personal no verá la sugerencia del sistema; solo se registrará para compararla con la decisión profesional.' : 'En piloto asistido el personal verá la sugerencia y sus motivos. Recuerde: solo debe activarse tras superar el modo sombra y con aprobación del comité.')) return;
+      S.modo = v; auditar('Cambio de modo', null, 'Nuevo modo: ' + (v === 'sombra' ? 'modo sombra' : 'piloto asistido')); guardar(); render();
+    }
+    else if (act === 'reloj') { S.offset += Number(a.dataset.min) * 60000; auditar('Reloj simulado', null, `+${a.dataset.min} min`); guardar(); render(); }
+    else if (act === 'reset') {
+      if (!await confirmar('Reiniciar demostración', 'Se borrarán todos los pacientes, decisiones y el registro de auditoría de este navegador.', 'REINICIAR')) return;
+      const ses = S.sesion; S = nuevoEstado(); S.sesion = ses; selId = null; nuevo = false; regTmp = null; auditar('Reinicio de la demostración'); guardar(); render(); toast('Demostración reiniciada.');
+    }
+    else if (handlers[act]) handlers[act](a, e);
+  });
+  const handlers = {};
+
+  /* =================================================================
+     TRIAJE
+     ================================================================= */
+  function rTriaje() {
+    const lista = enSala().sort((a, b) => new Date(a.llegadaISO) - new Date(b.llegadaISO));
+    const sel = selId && P(selId);
+    $('#main').innerHTML = `<div class="grid3">
+      <div><div class="card"><h3>Pacientes en sala (${lista.length})</h3><div class="plist">
+        ${lista.length ? lista.map(p => `<button class="pi ${p.id === selId && !nuevo ? 'on' : ''}" data-act="sel" data-v="${p.id}">
+          <div class="row" style="justify-content:space-between;align-items:center"><b>${esc(p.id)}</b>${p.estado === 'registrado' ? '<span class="badge">Pendiente</span>' : badge(p.decision.prior)}</div>
+          <div class="muted">${p.edad != null ? p.edad + ' años' : (p.edadAprox != null ? '~' + p.edadAprox + ' años' : '')} · ${esc(p.sexo)} · llegó ${hhmm(p.llegadaISO)}${p.estado === 'en_atencion' ? ' · en ' + esc(p.topico) : ''}</div></button>`).join('') : '<p class="muted">No hay pacientes en sala.</p>'}
+        </div>${rol() === 'comite' ? '' : '<button class="addp" data-act="nuevo">+ Registrar paciente</button>'}</div></div>
+      <div id="col-c"></div><div id="col-d"></div></div>`;
+    if (nuevo) rRegistroForm();
+    else if (sel) rPaciente(sel);
+    else $('#col-c').innerHTML = '<div class="card"><h3>Sin paciente seleccionado</h3><p class="muted">Seleccione un paciente de la sala o pulse «Registrar paciente».</p></div>';
+  }
+  handlers.sel = a => { selId = a.dataset.v; nuevo = false; decTmp = null; rTriaje(); };
+  handlers.nuevo = () => { nuevo = true; selId = null; regTmp = { verificado: false }; acompKey = null; rTriaje(); };
+
+  function pasos(p) {
+    const est = !p ? 0 : p.estado === 'registrado' ? (p.vit ? 3 : 2) : 4;
+    const nombres = ['Registro', 'Historia clínica', 'Motivo y signos', 'Sugerencia y decisión'];
+    return `<div class="steps">${nombres.map((n, i) => `<div class="${i < est ? 'done' : i === est ? 'cur' : ''}">${i < est ? '✓ ' : (i + 1) + '. '}${n}</div>`).join('')}</div>`;
+  }
+
+  /* ---------- Paso 1: registro ---------- */
+  const LLEGADA = ['Por sus propios medios', 'Traído por familiar o acompañante', 'Ambulancia', 'Policía o bomberos', 'Referido de otro establecimiento'];
+  const PARENTESCO = ['Madre', 'Padre', 'Hijo(a)', 'Cónyuge o pareja', 'Hermano(a)', 'Otro familiar', 'Tutor legal', 'No familiar'];
+  const NACIONALIDADES = ['Venezolana', 'Colombiana', 'Ecuatoriana', 'Chilena', 'Boliviana', 'Argentina', 'Otra'];
+  function rRegistroForm() {
+    const t = regTmp.tipo || 'DNI';
+    $('#col-c').innerHTML = `${pasos(null)}<form class="card" id="reg" novalidate><h3>1. Registro del paciente</h3><div id="reg-sum"></div>
+      ${fld('r-tipo', 'Tipo de documento', `<select id="r-tipo">${opt(['DNI', 'Carné de extranjería', 'Pasaporte', 'Sin documento (paciente no identificado)'], t)}</select>`, { req: true, hint: 'En emergencia no se niega la atención por falta de documento: use «Sin documento» si el paciente no puede identificarse.' })}
+      <div id="reg-doc"></div>
+      <hr class="s">
+      <div class="row">${fld('r-lleg', 'Forma de llegada', `<select id="r-lleg">${opt(LLEGADA, '', 'Seleccione…')}</select>`, { req: true })}
+      ${fld('r-hora', 'Hora de llegada', `<input id="r-hora" type="time" value="${hhmm(ahora().toISOString())}">`, { req: true, hint: 'No puede ser futura ni de hace más de 12 h.' })}</div>
+      ${fld('r-acomp', '¿Viene con acompañante?', `<select id="r-acomp">${opt(['No', 'Sí'], 'No')}</select>`, { req: true, hint: 'Obligatorio «Sí» si el paciente es menor de 18 años.' })}
+      <div id="reg-acomp"></div>
+      <div class="row" style="justify-content:flex-end"><button type="button" class="btn" data-act="cancelReg">Cancelar</button><button class="btn pri" id="r-save">Registrar paciente</button></div>
+    </form>`;
+    $('#col-d').innerHTML = `<div class="card"><h3>Historia clínica digital</h3><p class="muted">Se consulta automáticamente al verificar el DNI de un asegurado.</p></div>`;
+    rDocFields(); rAcomp();
+    $('#r-tipo').addEventListener('change', e => { regTmp = { verificado: false, tipo: e.target.value }; rDocFields(); const sa = $('#r-acomp'); sa.disabled = false; sa.value = 'No'; acompKey = null; rAcomp(); });
+    $('#r-acomp').addEventListener('change', rAcomp);
+    $('#reg').addEventListener('submit', e => { e.preventDefault(); guardarRegistro(); });
+    $('#reg').addEventListener('input', e => { if (e.target.id) setErr(e.target.id, ''); });
+  }
+  handlers.cancelReg = () => { nuevo = false; regTmp = null; rTriaje(); };
+  function rDocFields() {
+    const t = $('#r-tipo').value, box = $('#reg-doc');
+    if (t === 'DNI') {
+      box.innerHTML = `<div class="row">${fld('r-dni', 'Número de DNI', '<input id="r-dni" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="8 dígitos">', { req: true })}
+        <div style="width:120px">${fld('r-dv', 'Dígito verificador', '<input id="r-dv" maxlength="1" autocomplete="off" placeholder="0-9 o A-K" style="text-transform:uppercase">', { req: true })}</div></div>
+        <div class="hint" style="margin:-4px 0 8px">El dígito verificador es el carácter que figura después del guion en el DNI (por ejemplo, 45872316 - <b>3</b>).</div>
+        <button type="button" class="btn sm" data-act="verificar">Verificar en RENIEC (simulado)</button><div id="r-res"></div>`;
+      $('#r-dni').addEventListener('input', () => { regTmp.verificado = false; $('#r-res').innerHTML = ''; rAcomp(); });
+      $('#r-dv').addEventListener('input', () => { regTmp.verificado = false; $('#r-res').innerHTML = ''; rAcomp(); });
+    } else if (t === 'Sin documento (paciente no identificado)') {
+      box.innerHTML = `<div class="info-box">Se generará un código temporal <b>NN</b>. La identidad se completará cuando sea posible; no habrá historia clínica vinculada.</div>
+        <div class="row">${fld('r-sexo', 'Sexo', `<select id="r-sexo">${opt(['M', 'F', 'Indeterminado'], '', 'Seleccione…')}</select>`, { req: true })}
+        ${fld('r-edadap', 'Edad aproximada (años)', '<input id="r-edadap" inputmode="numeric" maxlength="3">', { req: true, hint: 'Entero de 0 a 120.' })}</div>
+        ${fld('r-senas', 'Señas particulares y circunstancia', '<textarea id="r-senas" maxlength="200" placeholder="Ej.: varón de contextura delgada, polo azul, traído por serenazgo desde la vía pública"></textarea>', { req: true, hint: 'Entre 10 y 200 caracteres.' })}`;
+    } else {
+      const ce = t === 'Carné de extranjería';
+      box.innerHTML = `${fld('r-num', ce ? 'Número de carné de extranjería' : 'Número de pasaporte', `<input id="r-num" maxlength="12" autocomplete="off" style="text-transform:uppercase">`, { req: true, hint: ce ? '8 a 12 letras o números.' : '6 a 12 letras o números.' })}
+        ${ce ? '' : `<div class="row">${fld('r-nac', 'Nacionalidad', `<select id="r-nac">${opt(NACIONALIDADES, '', 'Seleccione…')}</select>`, { req: true })}<div class="f hidden" id="w-nacotra">${fld('r-nacotra', 'Especifique', '<input id="r-nacotra" maxlength="40">', { req: true })}</div></div>`}
+        <div class="row">${fld('r-nom', 'Nombres', '<input id="r-nom" maxlength="40" autocomplete="off">', { req: true })}${fld('r-ap1', 'Primer apellido', '<input id="r-ap1" maxlength="40" autocomplete="off">', { req: true })}${fld('r-ap2', 'Segundo apellido', '<input id="r-ap2" maxlength="40" autocomplete="off">', { hint: 'Opcional.' })}</div>
+        <div class="row">${fld('r-sexo', 'Sexo', `<select id="r-sexo">${opt(['M', 'F'], '', 'Seleccione…')}</select>`, { req: true })}${fld('r-fnac', 'Fecha de nacimiento', `<input id="r-fnac" type="date" max="${ahora().toISOString().slice(0, 10)}">`, { req: true })}</div>
+        <div class="warn-box">Documento extranjero: no se consulta RENIEC ni la historia clínica de EsSalud. Verifique los datos con el documento físico.</div>`;
+      const nac = $('#r-nac'); if (nac) nac.addEventListener('change', () => $('#w-nacotra').classList.toggle('hidden', nac.value !== 'Otra'));
+      $('#r-fnac').addEventListener('change', rAcomp);
+    }
+  }
+  function edadReg() {
+    const t = $('#r-tipo').value;
+    if (t === 'DNI') return regTmp.verificado ? C.edad(regTmp.persona.fnac, ahora()) : null;
+    if (t.startsWith('Sin')) { const r = C.validarEnteroRango($('#r-edadap').value, 0, 120, 'x'); return r.ok ? r.value : null; }
+    const f = C.validarFechaNac($('#r-fnac') && $('#r-fnac').value, ahora()); return f.ok ? f.edad : null;
+  }
+  let acompKey = null;
+  function rAcomp() {
+    const e = edadReg(); const sel = $('#r-acomp');
+    const menor = e != null && e < 18 && !$('#r-tipo').value.startsWith('Sin');
+    if (menor) { sel.value = 'Sí'; sel.disabled = true; } else if (sel.disabled) { sel.disabled = false; sel.value = 'No'; }
+    const si = sel.value === 'Sí';
+    const key = si + '|' + menor; if (key === acompKey && $('#reg-acomp').innerHTML !== '' === si) return; acompKey = key;
+    $('#reg-acomp').innerHTML = si ? `${menor ? '<div class="warn-box">Paciente menor de edad: el acompañante es obligatorio.</div>' : ''}
+      <div class="row">${fld('r-anom', 'Nombres y apellidos del acompañante', '<input id="r-anom" maxlength="60" autocomplete="off">', { req: true, hint: 'Al menos nombre y apellido.' })}
+      ${fld('r-apar', 'Parentesco', `<select id="r-apar">${opt(PARENTESCO, '', 'Seleccione…')}</select>`, { req: true })}
+      ${fld('r-acel', 'Celular de contacto', '<input id="r-acel" inputmode="numeric" maxlength="9" autocomplete="off" placeholder="9XXXXXXXX">', { req: true })}</div>` : '';
+  }
+  handlers.verificar = () => {
+    setErr('r-dni', ''); setErr('r-dv', '');
+    const r = C.validarDNI($('#r-dni').value, $('#r-dv').value);
+    const box = $('#r-res');
+    if (!r.ok) {
+      const campo = /verificador/.test(r.msg) ? 'r-dv' : 'r-dni';
+      setErr(campo, r.msg); document.getElementById(campo).focus(); box.innerHTML = ''; return;
+    }
+    const per = C.buscarPadron(r.value);
+    if (!per) { setErr('r-dni', 'El DNI tiene un formato y dígito verificador válidos, pero no figura en RENIEC (padrón simulado). Revise el número; si el paciente no puede identificarse, use «Sin documento».'); box.innerHTML = ''; auditar('Consulta RENIEC sin resultado', null, 'Documento no encontrado'); guardar(); return; }
+    if (per.fallecido) { setErr('r-dni', 'Este DNI corresponde a una persona registrada como fallecida en RENIEC (padrón simulado). No se puede registrar: verifique la identidad del paciente.'); box.innerHTML = ''; auditar('Consulta RENIEC: titular fallecido', null, 'Registro bloqueado'); guardar(); return; }
+    const dup = enSala().find(p => p.docTipo === 'DNI' && p.docNum === per.dni);
+    if (dup) { setErr('r-dni', `Este paciente ya tiene una atención activa en sala (${dup.id}). No se permite un registro duplicado.`); box.innerHTML = ''; return; }
+    regTmp.verificado = true; regTmp.persona = per; regTmp.dni = r.value; regTmp.dv = r.dv;
+    const e = C.edad(per.fnac, ahora());
+    box.innerHTML = `<div class="ok-box"><b>DNI verificado.</b> ${esc(per.nombres)} ${esc(per.ap1)} ${esc(per.ap2)} · ${per.sexo === 'F' ? 'Femenino' : 'Masculino'} · ${e} años<br>
+      Seguro: ${per.seguro === 'Activo' ? '<b>asegurado activo</b>' : '<b style="color:var(--red)">no asegurado / inactivo</b> — se atiende la emergencia igualmente'}</div>
+      <label class="chk"><input type="checkbox" id="r-conf"> <span>Confirmo que la persona presente coincide con los datos y la foto del documento.</span></label><div class="err" id="err-r-conf" style="color:var(--red);font-size:12px"></div>`;
+    rAcomp();
+  };
+  function guardarRegistro() {
+    const er = {}; const t = $('#r-tipo').value; const now = ahora();
+    const p = { docTipo: t, nn: false, revaloraciones: [] };
+    if (t === 'DNI') {
+      const r = C.validarDNI($('#r-dni').value, $('#r-dv').value);
+      if (!r.ok) er[/verificador/.test(r.msg) ? 'r-dv' : 'r-dni'] = r.msg;
+      else if (!regTmp.verificado || regTmp.dni !== r.value) er['r-dni'] = 'Pulse «Verificar en RENIEC (simulado)» antes de registrar.';
+      else if (!$('#r-conf').checked) er['r-conf'] = 'Debe confirmar que la persona coincide con el documento.';
+      if (!er['r-dni'] && !er['r-dv'] && regTmp.verificado) {
+        const x = regTmp.persona;
+        Object.assign(p, { docNum: x.dni, dv: regTmp.dv, nombres: x.nombres, ap1: x.ap1, ap2: x.ap2, sexo: x.sexo, fnac: x.fnac, edad: C.edad(x.fnac, now), seguro: x.seguro, hc: x.hc });
+      }
+    } else if (t.startsWith('Sin')) {
+      const s = $('#r-sexo').value; if (!s) er['r-sexo'] = 'Seleccione el sexo.';
+      const ea = C.validarEnteroRango($('#r-edadap').value, 0, 120, 'la edad aproximada'); if (!ea.ok) er['r-edadap'] = ea.msg;
+      const se = C.validarTexto($('#r-senas').value, 10, 200, 'las señas particulares'); if (!se.ok) er['r-senas'] = se.msg;
+      Object.assign(p, { nn: true, sexo: s, edadAprox: ea.value, edad: null, senas: se.value, seguro: 'Por verificar', hc: null });
+    } else {
+      const ce = t === 'Carné de extranjería';
+      const n = ce ? C.validarCE($('#r-num').value) : C.validarPasaporte($('#r-num').value); if (!n.ok) er['r-num'] = n.msg;
+      if (!ce) { const na = $('#r-nac').value; if (!na) er['r-nac'] = 'Seleccione la nacionalidad.'; else if (na === 'Otra') { const o = C.validarNombre($('#r-nacotra').value, 'la nacionalidad'); if (!o.ok) er['r-nacotra'] = o.msg; else p.nacionalidad = o.value; } else p.nacionalidad = na; }
+      const nom = C.validarNombre($('#r-nom').value, 'los nombres'); if (!nom.ok) er['r-nom'] = nom.msg;
+      const a1 = C.validarNombre($('#r-ap1').value, 'el primer apellido'); if (!a1.ok) er['r-ap1'] = a1.msg;
+      let a2 = { ok: true, value: '' }; if ($('#r-ap2').value.trim()) { a2 = C.validarNombre($('#r-ap2').value, 'el segundo apellido'); if (!a2.ok) er['r-ap2'] = a2.msg; }
+      const s = $('#r-sexo').value; if (!s) er['r-sexo'] = 'Seleccione el sexo.';
+      const fn = C.validarFechaNac($('#r-fnac').value, now); if (!fn.ok) er['r-fnac'] = fn.msg;
+      if (n.ok && enSala().find(x => x.docTipo === t && x.docNum === n.value)) er['r-num'] = 'Este documento ya tiene una atención activa en sala. No se permite un registro duplicado.';
+      Object.assign(p, { docNum: n.value, nombres: nom.value, ap1: a1.value, ap2: a2.value, sexo: s, fnac: fn.value, edad: fn.edad, seguro: 'No asegurado (documento extranjero)', hc: null });
+    }
+    const ll = $('#r-lleg').value; if (!ll) er['r-lleg'] = 'Seleccione la forma de llegada.';
+    const hr = C.validarHoraLlegada($('#r-hora').value, now); if (!hr.ok) er['r-hora'] = hr.msg;
+    p.llegada = ll; p.llegadaISO = hr.value;
+    const edad = p.edad != null ? p.edad : p.edadAprox;
+    if ($('#r-acomp').value === 'Sí') {
+      const an = $('#r-anom').value.trim();
+      const partes = an.split(' ').filter(Boolean);
+      const vn = C.validarNombre(an, 'el nombre del acompañante');
+      if (!vn.ok) er['r-anom'] = vn.msg; else if (partes.length < 2) er['r-anom'] = 'Ingrese nombre y apellido del acompañante (al menos dos palabras).';
+      const par = $('#r-apar').value; if (!par) er['r-apar'] = 'Seleccione el parentesco.';
+      const cel = C.validarCelular($('#r-acel').value, true); if (!cel.ok) er['r-acel'] = cel.msg;
+      p.acompanante = { nombre: vn.value, parentesco: par, celular: cel.value };
+    } else if (edad != null && edad < 18 && !p.nn) er['r-acomp'] = 'El paciente es menor de edad: registre al acompañante.';
+    $$('#reg .f').forEach(f => f.classList.remove('bad')); $$('#reg .err').forEach(e => { e.textContent = ''; });
+    Object.entries(er).forEach(([k, m]) => setErr(k, m));
+    if (Object.keys(er).length) { mostrarResumen('#reg-sum', er); return; }
+    $('#r-save').disabled = true;
+    S.contador++;
+    p.id = 'A-' + pad(S.contador, 3);
+    if (p.nn) { S.nn++; p.docNum = 'NN-' + now.toISOString().slice(0, 10).replace(/-/g, '') + '-' + pad(S.nn, 3); }
+    p.seudo = C.seudonimo(p.docTipo, p.docNum);
+    p.registroISO = now.toISOString(); p.estado = 'registrado'; p.decision = null;
+    S.pacientes.push(p);
+    auditar('Registro de paciente', p, `Documento: ${p.docTipo}${p.hc ? ' · historia clínica consultada' : ' · sin historia clínica vinculada'}${p.seguro === 'Inactivo' ? ' · no asegurado' : ''}`);
+    guardar(); nuevo = false; regTmp = null; selId = p.id; rTriaje();
+    toast(`Paciente ${p.id} registrado${p.hc ? ' · historia clínica cargada' : ''}.`);
+  }
+
+  /* ---------- Paciente seleccionado ---------- */
+  function hcHTML(p) {
+    if (p.nn) return `<div class="card"><h3>Historia clínica digital</h3><div class="warn-box">Paciente no identificado (${esc(p.docNum)}). Sin historia clínica vinculada.</div><div class="kv"><span>Señas</span><b>${esc(p.senas)}</b></div></div>`;
+    if (!p.hc) return `<div class="card"><h3>Historia clínica digital</h3><div class="warn-box">Sin historia clínica en EsSalud (${esc(p.seguro)}). Pregunte por alergias y antecedentes al paciente o acompañante.</div>
+      <div class="kv"><span>Documento</span><b>${esc(p.docTipo)} ${esc(p.docNum)}</b></div>${p.nacionalidad ? `<div class="kv"><span>Nacionalidad</span><b>${esc(p.nacionalidad)}</b></div>` : ''}</div>`;
+    const h = p.hc;
+    return `<div class="card"><h3>Historia clínica digital <span class="muted" style="text-transform:none;letter-spacing:0;float:right">✓ consultada al registrar</span></h3>
+      <div>${h.cie.length ? h.cie.map(c => `<span class="tag">${esc(c.cod)} · ${esc(c.nombre)}</span>`).join('') : '<span class="muted">Sin diagnósticos crónicos registrados.</span>'}</div>
+      <div class="kv"><span>DNI (ficticio)</span><b>${esc(p.docNum)}-${esc(p.dv)}</b></div>
+      <div class="kv"><span>Alergias</span><b style="${h.alergias.length ? 'color:var(--red)' : ''}">${h.alergias.length ? esc(h.alergias.join(', ')) : 'Ninguna registrada'}</b></div>
+      <div class="kv"><span>Medicación habitual</span><b>${h.medicacion.length ? esc(h.medicacion.join(' · ')) : 'Ninguna'}</b></div>
+      <div class="kv"><span>Hospitalizaciones (12 meses)</span><b>${h.hospAnio}</b></div>
+      <div class="kv"><span>Última emergencia</span><b>${h.ultEmergDias != null ? `Hace ${h.ultEmergDias} días (${esc(h.ultEmergMotivo)})` : 'Sin registro'}</b></div></div>`;
+  }
+  function datosPac(p) {
+    return `<div class="card"><h3>Paciente ${esc(p.id)}</h3>
+      ${p.nn ? '' : `<div class="kv"><span>Nombre</span><b>${esc([p.nombres, p.ap1, p.ap2].filter(Boolean).join(' '))}</b></div>`}
+      <div class="kv"><span>Edad / sexo</span><b>${p.edad != null ? p.edad + ' años' : '~' + p.edadAprox + ' años (aprox.)'} · ${esc(p.sexo)}</b></div>
+      <div class="kv"><span>Llegada</span><b>${hhmm(p.llegadaISO)} (hace ${minDesde(p.llegadaISO)} min) · ${esc(p.llegada)}</b></div>
+      <div class="kv"><span>Seguro</span><b>${esc(p.seguro)}</b></div>
+      ${p.acompanante ? `<div class="kv"><span>Acompañante</span><b>${esc(p.acompanante.nombre)} (${esc(p.acompanante.parentesco)}) · ${esc(p.acompanante.celular)}</b></div>` : ''}
+      <div class="kv"><span>Código seudónimo</span><b class="mono">${esc(p.seudo)}</b></div></div>`;
+  }
+  function rPaciente(p) {
+    if (p.estado === 'registrado') {
+      $('#col-c').innerHTML = pasos(p) + datosPac(p) + (rol() === 'comite' ? '' : formClinico(p));
+      $('#col-d').innerHTML = hcHTML(p) + `<div id="sug"></div>` + (rol() === 'comite' ? '' : `<button class="btn danger sm" data-act="anular" data-v="${p.id}">Anular registro (error o duplicado)</button>`);
+      if (rol() !== 'comite') bindClinico(p);
+      if (p.pred) rDecision(p);
+    } else {
+      $('#col-c').innerHTML = pasos(p) + datosPac(p) + resumenClinico(p) + accionesPac(p);
+      $('#col-d').innerHTML = hcHTML(p) + resumenDecision(p);
+    }
+  }
+  handlers.anular = async a => {
+    const p = P(a.dataset.v); if (!p || p.estado !== 'registrado') return;
+    const d = document.createElement('dialog');
+    d.innerHTML = `<h3 style="margin-bottom:8px">Anular registro ${esc(p.id)}</h3><p class="muted">Solo para registros duplicados o con error. Queda en auditoría.</p>
+      ${fld('an-m', 'Motivo de la anulación', '<textarea id="an-m" maxlength="200"></textarea>', { req: true, hint: 'Entre 15 y 200 caracteres.' })}
+      <div class="row" style="justify-content:flex-end"><button class="btn" data-r="0">Cancelar</button><button class="btn danger" data-r="1">Anular</button></div>`;
+    document.body.appendChild(d); d.showModal();
+    d.addEventListener('click', e => {
+      const b = e.target.closest('button[data-r]'); if (!b) return;
+      if (b.dataset.r === '1') { const r = C.validarTexto($('#an-m', d).value, 15, 200, 'el motivo'); if (!r.ok) { setErr('an-m', r.msg); return; }
+        p.estado = 'anulado'; p.anulacion = r.value; auditar('Anulación de registro', p, r.value); guardar(); selId = null; toast(`Registro ${p.id} anulado.`); }
+      d.close(); d.remove(); rTriaje();
+    });
+  };
+
+  /* ---------- Paso 3: motivo y signos ---------- */
+  function formClinico(p) {
+    const v = p.vitRaw || {}, nm = p.noMedido || {};
+    const fem = p.sexo === 'F', e = p.edad != null ? p.edad : p.edadAprox;
+    const pideGest = fem && e >= 10 && e <= 55;
+    return `<form class="card" id="clin" novalidate><h3>3. Motivo de consulta y signos vitales</h3><div id="clin-sum"></div>
+      ${fld('c-mot', 'Motivo de consulta (texto libre)', `<textarea id="c-mot" maxlength="500" placeholder="Con las palabras del paciente o acompañante">${esc(p.motivo || '')}</textarea>`, { req: true, hint: '<span id="c-cnt">0</span>/500 · mínimo 10 caracteres y dos palabras. No escriba nombres ni números de documento: se filtran antes de enviarse a la nube.' })}
+      <div id="c-nlp" class="small"></div>
+      ${pideGest ? fld('c-gest', '¿Gestante?', `<select id="c-gest">${opt(['No', 'Sí', 'Desconoce'], p.gestante || '', 'Seleccione…')}</select>`, { req: true }) : ''}
+      <div class="vgrid">${C.VITALES.map(d => `<div class="f" id="f-v-${d.id}"><label for="v-${d.id}">${d.corto} <span class="muted">(${d.unidad})</span> <span class="req">*</span></label>
+        <input id="v-${d.id}" inputmode="${d.dec ? 'decimal' : 'numeric'}" maxlength="6" value="${esc(v[d.id] || '')}" ${nm[d.id] ? 'disabled' : ''} autocomplete="off">
+        <label class="nm"><input type="checkbox" data-nm="${d.id}" ${nm[d.id] ? 'checked' : ''}> No medido</label>
+        <select class="${nm[d.id] ? '' : 'hidden'}" id="nm-${d.id}" style="font-size:11.5px;margin-top:3px;width:100%">${opt(C.MOTIVOS_NO_MEDIDO, nm[d.id] || '', 'Motivo…')}</select>
+        <div class="err" id="err-v-${d.id}"></div><div id="flag-${d.id}"></div></div>`).join('')}</div>
+      <p class="muted" style="margin-top:8px">Ingreso manual. Captura automática con IoT: fase posterior. Máximo 3 signos «No medido».</p>
+      <div id="c-crit"></div>
+      <div class="row" style="justify-content:flex-end"><button class="btn pri" id="c-go">${S.modo === 'sombra' ? 'Continuar a la decisión profesional' : 'Obtener sugerencia del sistema'}</button></div></form>`;
+  }
+  function bindClinico(p) {
+    const f = $('#clin'); if (!f) return;
+    const upd = () => {
+      const t = $('#c-mot').value; $('#c-cnt').textContent = t.length;
+      const a = C.analizarTexto(t);
+      const nombres = [p.nombres, p.ap1, p.ap2].join(' ').split(' ');
+      $('#c-nlp').innerHTML = t.trim() ? `<div style="margin-bottom:8px"><b>PLN · términos detectados:</b> ${a.encontrados.length ? a.encontrados.map(x => `<span class="tag hit">${esc(x.cat)}</span>`).join('') : '<span class="muted">ninguno (el texto se usará igual)</span>'}<br>
+        <span class="muted">Texto seudonimizado que se enviaría a la nube:</span> <span class="mono">${esc(C.filtrarTexto(t, nombres))}</span></div>` : '';
+    };
+    $('#c-mot').addEventListener('input', () => { setErr('c-mot', ''); upd(); }); upd();
+    $$('[data-nm]', f).forEach(ch => ch.addEventListener('change', () => {
+      const id = ch.dataset.nm, inp = $('#v-' + id), sel = $('#nm-' + id);
+      inp.disabled = ch.checked; sel.classList.toggle('hidden', !ch.checked); if (ch.checked) { inp.value = ''; $('#flag-' + id).innerHTML = ''; } else sel.value = '';
+      setErr('v-' + id, ''); revisarCriticos();
+    }));
+    C.VITALES.forEach(d => {
+      const inp = $('#v-' + d.id);
+      inp.addEventListener('input', () => { setErr('v-' + d.id, ''); $('#flag-' + d.id).innerHTML = ''; });
+      inp.addEventListener('blur', () => {
+        if (!inp.value.trim()) return;
+        const r = C.validarVital(d, inp.value);
+        if (!r.ok) setErr('v-' + d.id, r.msg);
+        else $('#flag-' + d.id).innerHTML = r.critico ? '<span class="crit">⚠ Valor crítico</span>' : r.alerta ? '<span class="alrt">Valor alterado</span>' : '';
+        revisarCriticos();
+      });
+    });
+    f.addEventListener('submit', e => { e.preventDefault(); guardarClinico(p); });
+    revisarCriticos();
+  }
+  function revisarCriticos() {
+    const crit = C.VITALES.filter(d => { const i = $('#v-' + d.id); if (!i || i.disabled || !i.value.trim()) return false; const r = C.validarVital(d, i.value); return r.ok && r.critico; });
+    const box = $('#c-crit'); if (!box) return;
+    const prev = $('#c-critok') && $('#c-critok').checked;
+    box.innerHTML = crit.length ? `<div class="warn-box"><b>Valores críticos:</b> ${crit.map(d => esc(d.nombre) + ' ' + esc($('#v-' + d.id).value) + ' ' + d.unidad).join(', ')}.
+      <label class="chk"><input type="checkbox" id="c-critok" ${prev ? 'checked' : ''}> <span>Confirmo que volví a medir y los valores críticos son correctos.</span></label><div class="err" id="err-c-critok" style="color:var(--red);font-size:12px"></div></div>` : '';
+  }
+  function guardarClinico(p) {
+    const er = {};
+    const m = C.validarMotivo($('#c-mot').value); if (!m.ok) er['c-mot'] = m.msg;
+    let gest = null; if ($('#c-gest')) { gest = $('#c-gest').value; if (!gest) er['c-gest'] = 'Indique si la paciente está gestante.'; }
+    const vit = {}, raw = {}, nm = {}; let noMed = 0;
+    C.VITALES.forEach(d => {
+      const ch = $(`[data-nm="${d.id}"]`).checked;
+      if (ch) { noMed++; const mot = $('#nm-' + d.id).value; if (!mot) er['v-' + d.id] = `${d.nombre}: seleccione el motivo por el que no se midió.`; nm[d.id] = mot; vit[d.id] = null; return; }
+      raw[d.id] = $('#v-' + d.id).value;
+      const r = C.validarVital(d, raw[d.id]); if (!r.ok) er['v-' + d.id] = r.msg; else vit[d.id] = r.value;
+    });
+    if (noMed > 3) er['v-' + C.VITALES.find(d => $(`[data-nm="${d.id}"]`).checked).id] = `Hay ${noMed} signos marcados como «No medido»; el máximo es 3. Registre al menos ${C.VITALES.length - 3} signos.`;
+    const cx = C.validarVitalesCruzado(vit); Object.entries(cx).forEach(([k, msg]) => { if (!er['v-' + k]) er['v-' + k] = msg; });
+    const crit = C.VITALES.some(d => vit[d.id] != null && d.critico(vit[d.id]));
+    if (crit && !($('#c-critok') && $('#c-critok').checked)) er['c-critok'] = 'Confirme que volvió a medir los valores críticos.';
+    $$('#clin .f').forEach(f => f.classList.remove('bad')); $$('#clin .err').forEach(e => { e.textContent = ''; });
+    Object.entries(er).forEach(([k, msg]) => setErr(k, msg));
+    if (Object.keys(er).length) { mostrarResumen('#clin-sum', er); return; }
+    p.motivo = m.value; p.motivoFiltrado = C.filtrarTexto(m.value, [p.nombres, p.ap1, p.ap2].join(' ').split(' ')); p.gestante = gest;
+    p.vit = vit; p.vitRaw = raw; p.noMedido = nm; p.clinicoISO = ahora().toISOString();
+    p.pred = C.predecir({ edad: p.edad != null ? p.edad : p.edadAprox, sexo: p.sexo, llegada: p.llegada, gestante: gest, vit, noMedido: nm, hc: p.hc, motivo: m.value });
+    auditar(S.modo === 'sombra' ? 'Consulta al modelo (oculta: modo sombra)' : 'Consulta al modelo', p, `Sugerencia: Prioridad ${pr(p.pred.prioridad).rom} · riesgo ${fmt(p.pred.prob * 100, 1)} %`);
+    guardar(); decTmp = { id: p.id, modo: null }; rTriaje();
+  }
+
+  /* ---------- Paso 4: sugerencia y decisión ---------- */
+  function sugerenciaHTML(p) {
+    const s = p.pred, P1 = pr(s.prioridad); const max = Math.max(...s.contribuciones.map(c => Math.abs(c.w)), 1);
+    return `<div class="card"><h3>Sugerencia del sistema</h3><div class="sugg">
+      <div class="pbox" style="background:${P1.color}"><small>Prioridad sugerida</small><div class="rom">${P1.rom}</div><b>${esc(P1.corto)}</b></div>
+      <div style="flex:1"><div class="small">Riesgo estimado de desenlace crítico a 24 h (demostración): <b>${fmt(s.prob * 100, 1)} %</b></div>
+      <div class="bar" style="margin:6px 0"><i style="width:${Math.min(100, s.prob * 100).toFixed(1)}%"></i></div>
+      <div class="muted">Modelo ${esc(s.version)} · el sistema solo sugiere; decide el profesional.</div></div></div>
+      ${s.reglas.length ? `<div class="warn-box"><b>Regla de seguridad clínica aplicada</b> (no la decide el modelo): ${s.reglas.map(r => `prioridad mínima ${pr(r.min).rom} por ${esc(r.motivo)}`).join('; ')}. El modelo por sí solo estimaba Prioridad ${pr(s.prioridadModelo).rom}.</div>` : ''}
+      <h3 style="margin-top:12px">Motivos de la sugerencia</h3>
+      ${s.contribuciones.length ? s.contribuciones.map(c => `<div class="contrib"><div class="cb ${c.w < 0 ? 'neg' : ''}" style="width:${(Math.abs(c.w) / max * 100).toFixed(0)}%"></div><span>${esc(c.txt)}</span><span class="muted right">${c.w > 0 ? '+' : ''}${fmt(c.w)}</span></div>`).join('') : '<p class="muted">Sin factores de riesgo detectados.</p>'}
+      <p class="muted small">Valores = contribución al logit (similar a SHAP). Pesos ilustrativos, no entrenados.</p></div>`;
+  }
+  function rDecision(p) {
+    const sombra = S.modo === 'sombra';
+    const box = $('#sug');
+    box.innerHTML = (sombra ? `<div class="card"><h3>Decisión profesional (modo sombra)</h3><div class="info-box">La sugerencia del sistema está oculta. Clasifique según su criterio; el sistema guardará ambas para el comité de modelo.</div>` : sugerenciaHTML(p) + `<div class="card"><h3>Decisión del profesional</h3>`) +
+      `<div id="dec-sum"></div>
+      ${sombra ? fld('d-pri', 'Prioridad asignada', `<select id="d-pri">${opt([1, 2, 3, 4].map(n => ({ v: String(n), t: pr(n).rom + ' · ' + pr(n).nombre })), '', 'Seleccione…')}</select>`, { req: true }) :
+        `<div class="row"><button class="btn go" data-act="aceptar" data-v="${p.id}">✓ Aceptar sugerencia</button><button class="btn" data-act="modificar" data-v="${p.id}">✎ Modificar prioridad</button></div>`}
+      <div id="mod-box"></div>
+      ${sombra ? `<div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn pri" data-act="decSombra" data-v="${p.id}">Registrar decisión</button></div>` : ''}
+      <p class="muted small" style="margin-top:6px">Cada decisión queda registrada para auditoría con su usuario, hora y versión del modelo.</p></div>`;
+    if (sombra) $('#d-pri').addEventListener('change', () => setErr('d-pri', ''));
+  }
+  handlers.aceptar = a => {
+    const p = P(a.dataset.v); if (!p || p.estado !== 'registrado') return;
+    cerrarDecision(p, { prior: p.pred.prioridad, aceptada: true });
+  };
+  handlers.modificar = a => {
+    const p = P(a.dataset.v); const sug = p.pred.prioridad;
+    $('#mod-box').innerHTML = `<hr class="s"><form id="mod" novalidate>
+      ${fld('m-pri', 'Nueva prioridad', `<select id="m-pri">${opt([1, 2, 3, 4].filter(n => n !== sug).map(n => ({ v: String(n), t: pr(n).rom + ' · ' + pr(n).nombre })), '', 'Seleccione…')}</select>`, { req: true, hint: `Debe ser distinta de la sugerida (${pr(sug).rom}).` })}
+      ${fld('m-cat', 'Motivo del cambio', `<select id="m-cat">${opt(['Criterio clínico adicional', 'Dato no registrado en el sistema', 'Error en signos vitales registrados', 'Evolución del paciente durante el triaje', 'Otro'], '', 'Seleccione…')}</select>`, { req: true })}
+      ${fld('m-txt', 'Detalle del motivo', '<textarea id="m-txt" maxlength="300"></textarea>', { req: true, hint: 'Entre 15 y 300 caracteres. Este texto alimenta el registro de discrepancias.' })}
+      <div id="m-baja"></div>
+      <div class="row" style="justify-content:flex-end"><button type="button" class="btn" data-act="cancelMod" data-v="${p.id}">Cancelar</button><button class="btn pri">Confirmar cambio</button></div></form>`;
+    $('#m-pri').addEventListener('change', () => {
+      setErr('m-pri', ''); const n = Number($('#m-pri').value);
+      $('#m-baja').innerHTML = n > sug ? `<div class="warn-box"><b>Está asignando una prioridad menos urgente que la sugerida.</b> Esto puede causar sub-triaje.
+        <label class="chk"><input type="checkbox" id="m-bajaok"> <span>Confirmo que reevalué al paciente y asumo la clasificación menos urgente.</span></label><div class="err" id="err-m-bajaok" style="color:var(--red);font-size:12px"></div></div>` : '';
+    });
+    $('#mod').addEventListener('input', e => { if (e.target.id) setErr(e.target.id, ''); });
+    $('#mod').addEventListener('submit', e => {
+      e.preventDefault(); const er = {};
+      const n = Number($('#m-pri').value); if (!n) er['m-pri'] = 'Seleccione la nueva prioridad.';
+      const cat = $('#m-cat').value; if (!cat) er['m-cat'] = 'Seleccione el motivo del cambio.';
+      const tx = C.validarTexto($('#m-txt').value, 15, 300, 'el detalle del motivo'); if (!tx.ok) er['m-txt'] = tx.msg;
+      if (n > sug && !($('#m-bajaok') && $('#m-bajaok').checked)) er['m-bajaok'] = 'Debe confirmar la reevaluación para asignar una prioridad menos urgente.';
+      Object.entries(er).forEach(([k, m]) => setErr(k, m));
+      if (Object.keys(er).length) { mostrarResumen('#dec-sum', er); return; }
+      cerrarDecision(p, { prior: n, aceptada: false, motivoCat: cat, motivoTxt: tx.value });
+    });
+    $('#m-pri').focus();
+  };
+  handlers.cancelMod = () => { $('#mod-box').innerHTML = ''; };
+  handlers.decSombra = a => {
+    const p = P(a.dataset.v); const n = Number($('#d-pri').value);
+    if (!n) { setErr('d-pri', 'Seleccione la prioridad asignada.'); mostrarResumen('#dec-sum', { 'd-pri': 'Seleccione la prioridad asignada.' }); return; }
+    cerrarDecision(p, { prior: n, aceptada: n === p.pred.prioridad, sombra: true });
+  };
+  function cerrarDecision(p, d) {
+    if (p.estado !== 'registrado') return;
+    const u = usuario();
+    p.decision = Object.assign({ usuario: u.usuario, profesional: u.nombre, ts: ahora().toISOString(), modo: S.modo, sugerida: p.pred.prioridad, version: p.pred.version, priorInicial: d.prior }, d);
+    p.estado = 'clasificado'; p.prioridadISO = p.decision.ts;
+    const txt = d.sombra ? `Modo sombra · profesional: ${pr(d.prior).rom} · modelo: ${pr(p.pred.prioridad).rom}` : d.aceptada ? `Sugerencia aceptada: Prioridad ${pr(d.prior).rom}` : `Modificada: ${pr(p.pred.prioridad).rom} → ${pr(d.prior).rom} · ${d.motivoCat}: ${d.motivoTxt}`;
+    auditar(d.sombra ? 'Decisión profesional (modo sombra)' : d.aceptada ? 'Decisión: acepta sugerencia' : 'Decisión: modifica prioridad', p, txt);
+    guardar(); decTmp = null; rTriaje();
+    toast(`${p.id} clasificado como Prioridad ${pr(d.prior).rom}.`);
+  }
+  function resumenClinico(p) {
+    return `<div class="card"><h3>Motivo y signos vitales</h3><p>${esc(p.motivo)}</p>
+      ${p.gestante ? `<div class="kv"><span>Gestante</span><b>${esc(p.gestante)}</b></div>` : ''}
+      <div>${C.VITALES.map(d => `<span class="tag">${d.corto}: ${p.vit[d.id] != null ? esc(p.vit[d.id]) + ' ' + d.unidad : '<i>no medido</i>'}</span>`).join('')}</div></div>`;
+  }
+  function resumenDecision(p) {
+    const d = p.decision; const verSug = !(rol() === 'enfermera' && d.sombra);
+    const lim = pr(d.prior).limite, esp = minDesde(p.prioridadISO);
+    return `<div class="card"><h3>Decisión registrada</h3><div class="sugg"><div class="pbox" style="background:${pr(d.prior).color}"><small>Prioridad</small><div class="rom">${pr(d.prior).rom}</div><b>${esc(pr(d.prior).corto)}</b></div>
+      <div style="flex:1"><div class="kv"><span>Profesional</span><b>${esc(d.profesional)}</b></div><div class="kv"><span>Hora</span><b>${hhmm(d.ts)} (${minEntre(p.llegadaISO, d.ts)} min desde la llegada)</b></div>
+      <div class="kv"><span>Modo</span><b>${d.modo === 'sombra' ? 'Modo sombra' : 'Piloto asistido'}</b></div>
+      ${verSug ? `<div class="kv"><span>Sugerencia del sistema</span><b>${pr(d.sugerida).rom} ${d.prior === d.sugerida ? '(coincide)' : '(discrepancia)'}</b></div>` : '<div class="kv"><span>Sugerencia</span><b>Oculta en modo sombra</b></div>'}
+      ${d.motivoTxt ? `<div class="kv"><span>Motivo del cambio</span><b>${esc(d.motivoCat)}: ${esc(d.motivoTxt)}</b></div>` : ''}</div></div>
+      ${p.estado === 'clasificado' && esp > lim && d.prior > 1 ? `<div class="warn-box"><b>Revaluar ahora:</b> lleva ${esp} min en espera desde su clasificación; el tiempo de referencia para Prioridad ${pr(d.prior).rom} es ${lim} min.</div>` : ''}
+      ${p.revaloraciones.length ? `<h3 style="margin-top:10px">Revaloraciones</h3>${p.revaloraciones.map(r => `<div class="kv"><span>${hhmm(r.ts)} · ${pr(r.de).rom} → ${pr(r.a).rom}</span><b>${esc(r.motivo)}</b></div>`).join('')}` : ''}</div>`;
+  }
+  function accionesPac(p) {
+    if (rol() === 'comite') return '';
+    if (p.estado === 'clasificado') {
+      const libre = S.topicos.find(t => !t.pac);
+      return `<div class="card"><h3>Acciones</h3><div class="row">
+        <button class="btn" data-act="reval" data-v="${p.id}">Revalorar prioridad</button>
+        <button class="btn pri" data-act="atender" data-v="${p.id}" ${libre ? '' : 'disabled title="No hay tópicos libres"'}>Enviar a tópico ${libre ? libre.id : '(ninguno libre)'}</button></div><div id="rv-box"></div></div>`;
+    }
+    if (p.estado === 'en_atencion') return `<div class="card"><h3>Acciones</h3><p>En atención en <b>${esc(p.topico)}</b> desde ${hhmm(p.inicioISO)}.</p><button class="btn go" data-act="finalizar" data-v="${p.id}">Finalizar atención y liberar tópico</button></div>`;
+    return '';
+  }
+  handlers.reval = a => {
+    const p = P(a.dataset.v); const act = p.decision.prior;
+    $('#rv-box').innerHTML = `<hr class="s"><form id="rv" novalidate>${fld('rv-pri', 'Nueva prioridad', `<select id="rv-pri">${opt([1, 2, 3, 4].filter(n => n !== act).map(n => ({ v: String(n), t: pr(n).rom + ' · ' + pr(n).nombre })), '', 'Seleccione…')}</select>`, { req: true })}
+      ${fld('rv-txt', 'Motivo de la revaloración', '<textarea id="rv-txt" maxlength="300"></textarea>', { req: true, hint: 'Entre 15 y 300 caracteres.' })}
+      <div class="row" style="justify-content:flex-end"><button class="btn pri">Guardar revaloración</button></div></form>`;
+    $('#rv').addEventListener('submit', e => {
+      e.preventDefault(); const er = {};
+      const n = Number($('#rv-pri').value); if (!n) er['rv-pri'] = 'Seleccione la nueva prioridad.';
+      const t = C.validarTexto($('#rv-txt').value, 15, 300, 'el motivo'); if (!t.ok) er['rv-txt'] = t.msg;
+      Object.entries(er).forEach(([k, m]) => setErr(k, m)); if (Object.keys(er).length) return;
+      p.revaloraciones.push({ ts: ahora().toISOString(), de: act, a: n, motivo: t.value, usuario: usuario().usuario });
+      p.decision.prior = n; p.prioridadISO = ahora().toISOString();
+      auditar('Revaloración de prioridad', p, `${pr(act).rom} → ${pr(n).rom}: ${t.value}`); guardar(); rTriaje(); toast('Revaloración registrada.');
+    });
+  };
+  handlers.atender = async a => {
+    const p = P(a.dataset.v); const t = S.topicos.find(x => !x.pac); if (!p || !t || p.estado !== 'clasificado') return;
+    const pend = enSala().filter(x => x.estado === 'clasificado' && x.decision.prior < p.decision.prior);
+    if (pend.length && !await confirmar('Hay pacientes más urgentes esperando', `${pend.map(x => x.id).join(', ')} tiene(n) una prioridad más urgente que ${p.id}. ¿Enviar igualmente a ${p.id}? Quedará registrado en auditoría.`)) return;
+    t.pac = p.id; p.estado = 'en_atencion'; p.topico = t.id; p.inicioISO = ahora().toISOString();
+    auditar('Ingreso a tópico', p, `${t.id}${pend.length ? ' · se adelantó a pacientes más urgentes: ' + pend.map(x => x.id).join(', ') : ''}`); guardar(); render();
+  };
+  handlers.finalizar = a => {
+    const p = P(a.dataset.v); if (!p || p.estado !== 'en_atencion') return;
+    const t = S.topicos.find(x => x.pac === p.id); if (t) t.pac = null;
+    p.estado = 'atendido'; p.finISO = ahora().toISOString(); auditar('Fin de atención en tópico', p, p.topico); guardar(); selId = null; render();
+  };
+
+  /* =================================================================
+     EXPLICACIÓN AL PACIENTE
+     ================================================================= */
+  function ordenCola() {
+    const cola = enSala().filter(p => p.estado === 'clasificado');
+    const t0 = ahora().getTime();
+    const pacs = cola.map(p => ({ prior: p.decision.prior, llegada: Math.round((new Date(p.prioridadISO).getTime() - t0) / 60000) }));
+    const libres = S.topicos.map(t => { if (!t.pac) return 0; const q = P(t.pac); return Math.max(0, C.DURACION_ATENCION[q.decision.prior] - minDesde(q.inicioISO)); });
+    const r = C.aEstrella(pacs, libres);
+    const fifoIdx = pacs.map((p, i) => i).sort((a, b) => new Date(cola[a].llegadaISO) - new Date(cola[b].llegadaISO));
+    const fifo = C.simularOrden(pacs, fifoIdx, libres);
+    const plan = r.orden.length ? C.simularOrden(pacs, r.orden, libres).plan : [];
+    return { cola, r, fifo, plan, orden: r.orden.map(i => cola[i]) };
+  }
+  function rExplicacion() {
+    const cl = S.pacientes.filter(p => p.estado === 'clasificado' || p.estado === 'en_atencion');
+    if (explId && !cl.find(p => p.id === explId)) explId = null;
+    $('#main').innerHTML = `<h2>Explicación al paciente</h2><p class="muted">Elija un paciente ya clasificado. Muestre la vista para el paciente o use el guion para explicárselo.</p>
+      <div class="card"><div class="row">${fld('e-sel', 'Paciente clasificado', `<select id="e-sel">${opt(cl.map(p => ({ v: p.id, t: `${p.id} · Prioridad ${pr(p.decision.prior).rom}` })), explId || '', cl.length ? 'Seleccione…' : 'No hay pacientes clasificados')}</select>`)}
+      <button class="btn" data-act="vistaPac" ${explId ? '' : 'disabled'}>Vista para el paciente</button></div></div><div id="e-body"></div>`;
+    $('#e-sel').addEventListener('change', e => { explId = e.target.value || null; rExplicacion(); });
+    if (!explId) return;
+    const p = P(explId), d = p.decision, info = explicacionDatos(p);
+    $('#e-body').innerHTML = `${bloqueExplicacion(p, info)}
+      <div class="card"><h3>Guion breve para el personal</h3><p>«Su prioridad es <b>${pr(d.prior).rom}</b>: ${esc(pr(d.prior).nombre.toLowerCase())}.»</p><p>«${esc(pr(d.prior).paciente)}»</p><p>«${info.txtEspera} Si se siente peor, avíseme enseguida.»</p></div>
+      ${rol() === 'comite' ? '' : `<div class="card"><h3>Comprensión del paciente (indicador H4)</h3><p class="muted">Después de explicar, pregunte: «¿Puede contarme con sus palabras qué prioridad tiene y por qué?»</p>
+      <form id="h4" novalidate><div class="row">${fld('h4-r', '¿El paciente explicó su prioridad con sus palabras?', `<select id="h4-r">${opt(['Sí', 'No', 'No aplica (paciente no puede responder)'], p.comprension ? p.comprension.r : '', 'Seleccione…')}</select>`, { req: true })}<button class="btn pri">Guardar</button></div></form>
+      ${p.comprension ? `<p class="muted">Último registro: ${esc(p.comprension.r)} (${hhmm(p.comprension.ts)}).</p>` : ''}</div>`}`;
+    const f = $('#h4'); if (f) f.addEventListener('submit', e => {
+      e.preventDefault(); const r = $('#h4-r').value; if (!r) { setErr('h4-r', 'Seleccione una respuesta.'); return; }
+      p.comprension = { r, ts: ahora().toISOString() }; auditar('Registro de comprensión (H4)', p, r); guardar(); rExplicacion(); toast('Respuesta registrada.');
+    });
+  }
+  function explicacionDatos(p) {
+    if (p.estado === 'en_atencion') return { delante: 0, txtEspera: 'Ya está siendo atendido.', espera: 'En atención' };
+    const o = ordenCola(); const idx = o.orden.findIndex(x => x.id === p.id);
+    const pl = o.plan[idx]; const ini = pl ? Math.max(0, pl.inicio) : 0;
+    const lo = Math.max(0, Math.round(ini * 0.7 / 5) * 5), hi = Math.max(5, Math.round(ini * 1.3 / 5) * 5 + 5);
+    const espera = p.decision.prior === 1 ? 'Inmediata' : `${lo} a ${hi} min`;
+    return { delante: Math.max(0, idx), espera, txtEspera: p.decision.prior === 1 ? 'Lo atendemos de inmediato.' : `Calculamos una espera de ${lo} a ${hi} min.` };
+  }
+  function bloqueExplicacion(p, info, grande) {
+    const d = p.decision;
+    return `<div class="card"><p class="muted">Paciente <b>${esc(p.id)}</b> · hora de llegada ${hhmm(p.llegadaISO)}</p>
+      <div class="sugg" style="align-items:stretch"><div class="pbox" style="background:${pr(d.prior).color};width:${grande ? 240 : 170}px"><small>Su prioridad</small><div class="rom" style="font-size:${grande ? 80 : 54}px">${pr(d.prior).rom}</div><b>${esc(pr(d.prior).corto)}</b></div>
+      <div style="flex:1"><div class="info-box ${grande ? 'big' : ''}"><b>¿Qué significa?</b> ${esc(pr(d.prior).paciente)}</div>
+      <div class="row ${grande ? 'big' : ''}" style="justify-content:space-around;text-align:center"><div><div class="kpi-v" style="font-size:${grande ? 44 : 30}px;font-weight:800;color:var(--blue)">${info.delante}</div><div class="muted">personas serán atendidas antes que usted</div></div>
+      <div><div style="font-size:${grande ? 44 : 30}px;font-weight:800;color:var(--blue)">${esc(info.espera)}</div><div class="muted">espera aproximada</div></div></div></div></div>
+      <div class="row" style="margin-top:10px">${[1, 2, 3, 4].map(n => `<span class="tag" style="${n === d.prior ? 'font-weight:800;border-color:' + pr(n).color : ''}">${pr(n).rom} · ${esc(pr(n).corto)}</span>`).join('')}</div>
+      <div class="grid2" style="margin-top:6px"><div class="ok-box">✓ Un profesional de salud revisó y confirmó esta prioridad.</div><div class="warn-box">⚠ Si se siente peor, avise de inmediato al personal.</div></div>
+      <p class="muted small">La espera es una estimación y puede cambiar si llegan casos más graves.</p></div>`;
+  }
+  handlers.vistaPac = () => {
+    const p = P(explId); if (!p) return; const v = document.createElement('div'); v.className = 'pview';
+    v.innerHTML = `<div class="row" style="justify-content:space-between"><h2>Información para el paciente</h2><button class="btn" data-close="1">Cerrar vista</button></div>${bloqueExplicacion(p, explicacionDatos(p), true)}`;
+    v.addEventListener('click', e => { if (e.target.closest('[data-close]')) v.remove(); });
+    document.body.appendChild(v); auditar('Vista para el paciente mostrada', p);
+  };
+
+  /* =================================================================
+     TABLERO DE LA JEFATURA
+     ================================================================= */
+  function indicadores() {
+    const cls = S.pacientes.filter(p => p.decision && !p.sintetico);
+    const tiempos = cls.map(p => minEntre(p.llegadaISO, p.decision.ts));
+    const h1 = tiempos.length ? tiempos.reduce((a, b) => a + b, 0) / tiempos.length : null;
+    const pares = cls.map(p => ({ ref: ini(p), pred: p.decision.sugerida }));
+    const conc = pares.length ? pares.filter(x => x.ref === x.pred).length / pares.length : null;
+    const piloto = cls.filter(p => p.decision.modo === 'piloto').length;
+    const h3 = cls.length ? piloto / cls.length : null;
+    const comp = S.pacientes.filter(p => p.comprension && p.comprension.r !== 'No aplica (paciente no puede responder)');
+    const h4 = comp.length ? comp.filter(p => p.comprension.r === 'Sí').length / comp.length : null;
+    const bajo = cls.filter(p => ini(p) > p.decision.sugerida).length;
+    return { cls, h1, conc, kappa: C.kappa(pares), h3, h4, nComp: comp.length, bajo, pares };
+  }
+  const pct = x => x == null ? '—' : (x * 100).toFixed(0) + ' %';
+  const fmt = (x, d = 2) => x == null ? '—' : x.toFixed(d).replace('.', ',');
+  function rTablero() {
+    const I = indicadores(); const sala = enSala(); const sinClas = sala.filter(p => p.estado === 'registrado').length;
+    const red = S.lineaBase && I.h1 != null ? 1 - I.h1 / S.lineaBase : null;
+    const dist = [1, 2, 3, 4].map(n => sala.filter(p => p.decision && p.decision.prior === n).length); const mx = Math.max(1, ...dist);
+    const o = ordenCola();
+    $('#main').innerHTML = `<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:12px"><div><h2>Tablero de la jefatura</h2><p class="muted">Indicadores del turno y de las hipótesis del MVP (Tabla X).</p></div>
+      <div class="row"><button class="btn" data-act="reloj" data-min="5">Avanzar reloj 5 min</button><button class="btn" data-act="reloj" data-min="10">Avanzar reloj 10 min</button>${rol() === 'jefe' ? '<button class="btn" data-act="escenario">Cargar escenario sintético</button>' : ''}</div></div>
+      <div class="kpis">
+        <div class="kpi"><div class="l">Pacientes en sala</div><div class="v">${sala.length}</div><div class="muted">${sinClas} sin clasificar · ${S.topicos.filter(t => t.pac).length}/${S.topicos.length} tópicos ocupados</div></div>
+        <div class="kpi"><div class="l">H1 · Llegada → prioridad</div><div class="v">${I.h1 == null ? '—' : I.h1.toFixed(0) + ' min'}</div><div class="muted">${S.lineaBase ? `Línea base ${S.lineaBase} min · reducción ${red == null ? '—' : (red * 100).toFixed(0) + ' %'} ${red != null ? (red >= 0.30 ? '<span class="pass">✓ meta ≥ 30 %</span>' : red < 0.10 ? '<span class="fail">✗ umbral de pivote (&lt; 10 %)</span>' : '<span class="alrt">entre umbrales: ajustar</span>') : ''}` : 'Línea base por levantar'}</div></div>
+        <div class="kpi"><div class="l">H2 · Concordancia modelo–profesional</div><div class="v">${pct(I.conc)}</div><div class="muted">kappa ${I.kappa == null ? '— (n &lt; 2)' : fmt(I.kappa)} · meta ≥ 0,70 ${I.kappa != null ? (I.kappa >= 0.7 ? '<span class="pass">✓</span>' : '<span class="fail">✗</span>') : ''}</div></div>
+        <div class="kpi"><div class="l">H3 · Atenciones con apoyo del sistema</div><div class="v">${pct(I.h3)}</div><div class="muted">Meta ≥ 60 % en el piloto ${I.h3 != null ? (I.h3 >= 0.6 ? '<span class="pass">✓</span>' : I.h3 < 0.3 ? '<span class="fail">✗ &lt; 30 %</span>' : '') : ''}</div></div>
+        <div class="kpi"><div class="l">H4 · Paciente entiende su prioridad</div><div class="v">${pct(I.h4)}</div><div class="muted">${I.nComp} registro(s) · meta ≥ 50 % (hoy 17 %)</div></div></div>
+      <div class="grid2" style="margin-top:14px">
+        <div class="card"><h3>Pacientes en sala por prioridad</h3><div class="bars">${dist.map((c, i) => `<div class="b"><i style="height:${(c / mx * 100).toFixed(0)}%;background:${pr(i + 1).color}"></i><span>${pr(i + 1).rom}</span><b>${c}</b></div>`).join('')}</div>
+          <p class="muted">Decisiones por debajo de la sugerencia (posible sub-triaje): <b>${I.bajo}</b></p></div>
+        <div class="card"><h3>Línea base para H1</h3><form id="lb" novalidate class="row">${fld('lb-v', 'Tiempo promedio actual hasta la priorización (min)', `<input id="lb-v" inputmode="numeric" maxlength="3" value="${S.lineaBase || ''}" placeholder="Por levantar en el diagnóstico de campo" ${rol() === 'jefe' ? '' : 'disabled'}>`, { hint: 'Entero de 1 a 600. Solo el médico jefe puede registrarla.' })}
+          ${rol() === 'jefe' ? '<button class="btn pri">Guardar</button>' : ''}</form></div></div>
+      <div class="card"><h3>Orden de atención sugerido · búsqueda A*</h3>
+        ${o.cola.length ? `<p class="muted">f(n) = g(n) + h(n): g = espera ponderada por prioridad (pesos ${Object.values(C.PESO_ESPERA).join('/')}) con penalidad por superar el tiempo de referencia; h = cota inferior del costo de los pendientes. Prioridad I siempre primero. Método: <b>${esc(o.r.metodo)}</b> · nodos expandidos: ${o.r.expandidos}.</p>
+        <p>Costo A*: <b>${o.r.costo.toFixed(0)}</b> · costo si se atiende por orden de llegada: <b>${o.fifo.costo.toFixed(0)}</b> ${o.fifo.costo > 0 ? `(<b>${((1 - o.r.costo / o.fifo.costo) * 100).toFixed(0)} %</b> menos)` : ''}</p>
+        <div class="tscroll"><table class="t"><tr><th>#</th><th>Código</th><th>Prioridad</th><th>Espera desde la clasificación</th><th>Inicio estimado</th><th>Estado</th></tr>
+        ${o.orden.map((p, k) => { const esp = minDesde(p.prioridadISO), lim = pr(p.decision.prior).limite; return `<tr><td>${k + 1}</td><td>${esc(p.id)}</td><td>${badge(p.decision.prior)}</td><td>${esp} min</td><td>${o.plan[k].inicio <= 0 ? 'ahora' : 'en ~' + Math.round(o.plan[k].inicio) + ' min'}</td><td>${esp > lim && p.decision.prior > 1 ? '<b class="fail">Revaluar ahora</b>' : 'En espera'}</td></tr>`; }).join('')}</table></div>
+        ${rol() !== 'comite' && o.orden.length && S.topicos.some(t => !t.pac) ? `<button class="btn pri" data-act="atender" data-v="${o.orden[0].id}" style="margin-top:8px">Enviar a ${esc(o.orden[0].id)} al tópico libre</button>` : ''}
+        <p class="muted small">Tiempos de referencia: I inmediato, II ≤ 10 min, III ≤ 20 min (norma técnica); IV 60 min (parámetro de demostración). Duraciones de atención (demo): ${Object.entries(C.DURACION_ATENCION).map(([k, v]) => pr(k).rom + ' ' + v + ' min').join(', ')}. El orden es una sugerencia: decide el personal.</p>` : '<p class="muted">No hay pacientes clasificados en espera.</p>'}</div>
+      <div class="card"><h3>Tópicos</h3><div class="row">${S.topicos.map(t => { const q = t.pac && P(t.pac); return `<div class="kpi" style="flex:1"><div class="l">${t.id}</div><b>${q ? esc(q.id) + ' ' + badge(q.decision.prior) : 'Libre'}</b><div class="muted">${q ? 'desde ' + hhmm(q.inicioISO) + ' (' + minDesde(q.inicioISO) + ' min)' : ''}</div></div>`; }).join('')}</div></div>`;
+    const f = $('#lb'); if (f) f.addEventListener('submit', e => {
+      e.preventDefault(); const r = C.validarEnteroRango($('#lb-v').value, 1, 600, 'la línea base'); if (!r.ok) { setErr('lb-v', r.msg); return; }
+      S.lineaBase = r.value; auditar('Registro de línea base H1', null, r.value + ' min'); guardar(); rTablero(); toast('Línea base guardada.');
+    });
+  }
+  handlers.escenario = async () => {
+    if (!await confirmar('Cargar escenario sintético', 'Se agregarán 16 atenciones sintéticas ya finalizadas (marcadas como «sintético», con decisiones y desenlaces simulados) para poblar las métricas del modelo, la deriva y los perfiles K-Means. No afecta a los pacientes en sala.')) return;
+    const casos = [
+      ['M', 34, 'Fiebre y dolor de cabeza desde hace tres días', { pas: 115, pad: 72, fc: 98, fr: 18, temp: 38.7, spo2: 97, glasgow: 15, eva: 5 }, 'Alta'],
+      ['F', 27, 'Fiebre con petequias y sangrado de encías', { pas: 100, pad: 65, fc: 112, fr: 20, temp: 38.9, spo2: 96, glasgow: 15, eva: 6 }, 'Hospitalización'],
+      ['M', 71, 'Dolor en el pecho opresivo desde hace una hora', { pas: 165, pad: 95, fc: 104, fr: 22, temp: 36.8, spo2: 93, glasgow: 15, eva: 8 }, 'Ingreso a UCI'],
+      ['F', 45, 'Fiebre y dolor abdominal intenso con vómitos persistentes', { pas: 92, pad: 60, fc: 118, fr: 22, temp: 38.4, spo2: 95, glasgow: 15, eva: 8 }, 'Hospitalización'],
+      ['M', 22, 'Dolor de garganta y resfrío', { pas: 120, pad: 78, fc: 82, fr: 16, temp: 37.4, spo2: 98, glasgow: 15, eva: 2 }, 'Alta'],
+      ['F', 83, 'Falta de aire y desmayo en casa', { pas: 78, pad: 50, fc: 132, fr: 30, temp: 37.0, spo2: 84, glasgow: 13, eva: 4 }, 'Fallecimiento'],
+      ['M', 30, 'Caída de moto con golpe en la pierna', { pas: 130, pad: 80, fc: 95, fr: 18, temp: 36.7, spo2: 98, glasgow: 15, eva: 7 }, 'Alta'],
+      ['F', 19, 'Fiebre y malestar general desde ayer', { pas: 110, pad: 70, fc: 96, fr: 17, temp: 38.2, spo2: 98, glasgow: 15, eva: 3 }, 'Alta'],
+      ['M', 58, 'Debilidad en un lado del cuerpo y boca desviada', { pas: 190, pad: 105, fc: 88, fr: 18, temp: 36.6, spo2: 96, glasgow: 14, eva: 2 }, 'Ingreso a UCI'],
+      ['F', 38, 'Fiebre alta y dolor de cuerpo, sospecha de dengue', { pas: 112, pad: 70, fc: 104, fr: 19, temp: 39.6, spo2: 97, glasgow: 15, eva: 6 }, 'Alta'],
+      ['M', 64, 'Dolor abdominal y vómitos desde la mañana', { pas: 135, pad: 85, fc: 90, fr: 18, temp: 37.2, spo2: 97, glasgow: 15, eva: 6 }, 'Hospitalización'],
+      ['F', 29, 'Control de presión y receta', { pas: 125, pad: 82, fc: 76, fr: 15, temp: 36.6, spo2: 99, glasgow: 15, eva: 0 }, 'Alta'],
+      ['M', 41, 'Convulsión en la calle, llega somnoliento', { pas: 140, pad: 88, fc: 110, fr: 22, temp: 37.5, spo2: 94, glasgow: 12, eva: 3 }, 'Hospitalización'],
+      ['F', 52, 'Fiebre y manchas rojas en la piel', { pas: 105, pad: 68, fc: 108, fr: 20, temp: 38.8, spo2: 96, glasgow: 15, eva: 5 }, 'Cirugía de emergencia'],
+      ['M', 77, 'Dificultad respiratoria y silbidos', { pas: 150, pad: 90, fc: 116, fr: 28, temp: 37.8, spo2: 89, glasgow: 15, eva: 4 }, 'Ingreso a UCI'],
+      ['F', 24, 'Diarrea y vómitos leves desde ayer', { pas: 108, pad: 70, fc: 92, fr: 17, temp: 37.6, spo2: 98, glasgow: 15, eva: 3 }, 'Alta']
+    ];
+    const base = ahora().getTime() - 6 * 3600000;
+    casos.forEach((c, i) => {
+      const pred = C.predecir({ edad: c[1], sexo: c[0], llegada: 'Por sus propios medios', vit: c[3], hc: { cie: [] }, motivo: c[2] });
+      const prof = i % 5 === 3 ? Math.max(1, pred.prioridad - 1) : i % 7 === 6 ? Math.min(4, pred.prioridad + 1) : pred.prioridad;
+      S.contador++;
+      const lleg = new Date(base + i * 18 * 60000), dec = new Date(lleg.getTime() + (6 + (i % 4) * 3) * 60000);
+      const p = { id: 'S-' + pad(S.contador, 3), sintetico: true, docTipo: 'Sintético', docNum: 'SINT-' + i, nn: false, sexo: c[0], edad: c[1], llegada: 'Por sus propios medios', llegadaISO: lleg.toISOString(), registroISO: lleg.toISOString(),
+        seguro: 'Activo', hc: null, motivo: c[2], vit: c[3], noMedido: {}, pred, estado: 'atendido', revaloraciones: [], prioridadISO: dec.toISOString(),
+        decision: { prior: prof, sugerida: pred.prioridad, aceptada: prof === pred.prioridad, modo: 'sombra', sombra: true, usuario: 'sintetico', profesional: 'Registro sintético', ts: dec.toISOString(), version: pred.version },
+        desenlace: { tipo: c[4], ts: new Date(dec.getTime() + 3 * 3600000).toISOString(), critico: ['Ingreso a UCI', 'Cirugía de emergencia', 'Fallecimiento'].includes(c[4]) } };
+      p.seudo = C.seudonimo('SINT', p.docNum); S.pacientes.push(p);
+    });
+    auditar('Carga de escenario sintético', null, `${casos.length} atenciones sintéticas`); guardar(); render(); toast('Escenario sintético cargado.');
+  };
+
+  /* =================================================================
+     REGISTRO, DESENLACES Y AUDITORÍA
+     ================================================================= */
+  const DESENLACES = ['Alta', 'Hospitalización', 'Ingreso a UCI', 'Cirugía de emergencia', 'Fallecimiento', 'Referido a otro establecimiento', 'Retiro voluntario'];
+  function rRegistro() {
+    const cls = S.pacientes.filter(p => p.decision && !p.sintetico);
+    const ver = verificarCadena(); const puede = rol() !== 'comite';
+    $('#main').innerHTML = `<h2>Registro de decisiones, desenlaces y auditoría</h2>
+      <div class="card"><h3>Registro de discrepancias</h3>${cls.length ? `<div class="tscroll"><table class="t"><tr><th>Código</th><th>Seudónimo</th><th>Hora</th><th>Modo</th><th>Sugerida</th><th>Decidida</th><th>Motivo del cambio</th><th>Desenlace 24 h</th></tr>
+        ${cls.map(p => `<tr><td>${esc(p.id)}</td><td class="mono">${esc(p.seudo)}</td><td>${hhmm(p.decision.ts)}</td><td>${p.decision.modo === 'sombra' ? 'Sombra' : 'Piloto'}</td><td>${rol() === 'enfermera' && p.decision.sombra ? '<span class="muted">oculta</span>' : badge(p.decision.sugerida)}</td><td>${badge(ini(p))}${p.decision.prior !== ini(p) ? ' → ' + badge(p.decision.prior) : ''}</td><td>${p.decision.motivoTxt ? esc(p.decision.motivoCat + ': ' + p.decision.motivoTxt) : (rol() === 'enfermera' && p.decision.sombra ? '—' : ini(p) === p.decision.sugerida ? '<span class="muted">coincide</span>' : '<span class="muted">discrepancia (modo sombra)</span>')}</td>
+        <td>${p.desenlace ? esc(p.desenlace.tipo) + (p.desenlace.critico ? ' <b class="fail">(crítico)</b>' : '') : (puede ? `<button class="btn sm" data-act="desenlace" data-v="${p.id}">Registrar</button>` : '—')}</td></tr>`).join('')}</table></div>` : '<p class="muted">Aún no hay decisiones registradas.</p>'}
+        <div id="des-box"></div></div>
+      <div class="card"><h3>Registro de auditoría (cadena de hash SHA-256)</h3>
+        <div class="row" style="align-items:center;margin-bottom:8px">${ver.ok ? `<span class="ok-box" style="margin:0">✓ Integridad verificada: ${S.audit.length} eventos encadenados sin alteraciones.</span>` : `<span class="summary" style="margin:0">✗ La cadena está alterada a partir del evento ${ver.n}.</span>`}
+        <button class="btn sm" data-act="exportar">Exportar CSV seudonimizado</button></div>
+        <p class="muted">Cada evento guarda el hash del anterior: si alguien modifica un evento, la verificación falla. No se registran nombres ni documentos, solo el código seudónimo (HMAC con clave institucional).</p>
+        <div class="tscroll"><table class="t"><tr><th>#</th><th>Hora</th><th>Usuario</th><th>Acción</th><th>Paciente</th><th>Detalle</th><th>Hash</th></tr>
+        ${S.audit.slice().reverse().slice(0, 200).map(ev => `<tr><td>${ev.n}</td><td>${hhmm(ev.ts)}</td><td>${esc(ev.usuario)}</td><td>${esc(ev.accion)}</td><td>${esc(ev.codigo)}<br><span class="mono">${esc(ev.ref)}</span></td><td>${esc(ev.detalle)}</td><td class="mono">${esc(ev.hash.slice(0, 16))}…</td></tr>`).join('')}</table></div></div>`;
+  }
+  handlers.desenlace = a => {
+    const p = P(a.dataset.v); if (!p || p.desenlace) return;
+    $('#des-box').innerHTML = `<hr class="s"><form id="des" novalidate><b>Desenlace de ${esc(p.id)}</b> (clasificado a las ${hhmm(p.decision.ts)})<div class="row">
+      ${fld('ds-t', 'Desenlace', `<select id="ds-t">${opt(DESENLACES, '', 'Seleccione…')}</select>`, { req: true })}
+      ${fld('ds-h', 'Hora del desenlace', `<input id="ds-h" type="time" value="${hhmm(ahora().toISOString())}">`, { req: true, hint: 'Posterior a la clasificación y no futura.' })}
+      <button class="btn pri">Guardar desenlace</button></div></form>`;
+    $('#des').addEventListener('submit', e => {
+      e.preventDefault(); const er = {};
+      const t = $('#ds-t').value; if (!t) er['ds-t'] = 'Seleccione el desenlace.';
+      const h = $('#ds-h').value; let ts = null;
+      if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(h)) er['ds-h'] = 'Ingrese la hora en formato HH:MM.';
+      else {
+        const [hh, mm] = h.split(':').map(Number); const n = ahora(); let d = new Date(n); d.setHours(hh, mm, 0, 0); if (d > n) d = new Date(d - 86400000);
+        if (d < new Date(p.decision.ts)) er['ds-h'] = `El desenlace no puede ser anterior a la clasificación (${hhmm(p.decision.ts)}).`; else ts = d.toISOString();
+      }
+      Object.entries(er).forEach(([k, m]) => setErr(k, m)); if (Object.keys(er).length) return;
+      const crit = ['Ingreso a UCI', 'Cirugía de emergencia', 'Fallecimiento'].includes(t) && (new Date(ts) - new Date(p.decision.ts)) <= 86400000;
+      p.desenlace = { tipo: t, ts, critico: crit }; auditar('Registro de desenlace', p, t + (crit ? ' (desenlace crítico a 24 h)' : '')); guardar(); rRegistro(); toast('Desenlace registrado.');
+    });
+  };
+  handlers.exportar = () => {
+    const filas = [['n', 'fecha_hora', 'usuario', 'rol', 'accion', 'seudonimo', 'codigo', 'modelo', 'modo', 'detalle', 'hash_previo', 'hash']].concat(S.audit.map(e => [e.n, e.ts, e.usuario, e.rol, e.accion, e.ref, e.codigo, e.modelo, e.modo, e.detalle, e.prev, e.hash]));
+    const csv = '﻿' + filas.map(r => r.map(x => '"' + String(x).replace(/"/g, '""') + '"').join(';')).join('\r\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = 'auditoria_triaje_seudonimizada.csv'; a.click();
+    auditar('Exportación de auditoría'); guardar();
+  };
+
+  /* =================================================================
+     MODELO: métricas, deriva, clustering, pipeline
+     ================================================================= */
+  const REF = { temp: [36.9, 0.7], fc: [88, 16], spo2: [96, 3], pas: [125, 20], fr: [18, 4], edad: [45, 20] };
+  function rModelo() {
+    const cls = S.pacientes.filter(p => p.decision);
+    const pares = cls.map(p => ({ ref: ini(p), pred: p.decision.sugerida }));
+    const m = C.matriz(pares), mc = C.metricasCriticas(pares), f1 = C.f1Macro(pares), k = C.kappa(pares);
+    const conDes = cls.filter(p => p.desenlace);
+    const au = C.auroc(conDes.map(p => p.pred.prob), conDes.map(p => p.desenlace.critico ? 1 : 0));
+    const n = pares.length; const pocos = n < 20;
+    const fila = (met, val, meta, cmp, prop) => `<tr><td>${met}</td><td class="num">${fmt(val)}</td><td>${meta}</td><td>${val == null ? '<span class="muted">sin datos</span>' : cmp(val) ? '<span class="pass">✓ cumple</span>' : '<span class="fail">✗ no cumple</span>'}</td><td class="muted">${prop}</td></tr>`;
+    // deriva
+    const reales = cls.filter(p => p.vit);
+    const drift = Object.entries(REF).map(([v, [mu, sd]]) => {
+      const xs = reales.map(p => v === 'edad' ? (p.edad != null ? p.edad : p.edadAprox) : p.vit[v]).filter(x => x != null);
+      if (xs.length < 5) return { v, n: xs.length, d: null };
+      const mean = xs.reduce((a, b) => a + b, 0) / xs.length; return { v, n: xs.length, mean, d: Math.abs(mean - mu) / sd };
+    });
+    const fiebre = reales.length ? reales.filter(p => /fiebre|dengue/i.test(C.normTexto(p.motivo))).length / reales.length : null;
+    $('#main').innerHTML = `<h2>Modelo · ficha técnica, métricas y monitoreo</h2>
+      <div class="grid2"><div class="card"><h3>Ficha del modelo</h3>
+        <div class="kv"><span>Versión</span><b>${esc(C.MODELO.version)}</b></div><div class="kv"><span>Estado</span><b>${esc(C.MODELO.estado)}</b></div>
+        <div class="kv"><span>Tipo</span><b>Demostración: logit con pesos ilustrativos (no entrenado)</b></div>
+        <div class="kv"><span>Modelo objetivo (APF3)</span><b>XGBoost + TF-IDF del motivo de consulta, explicado con SHAP</b></div>
+        <div class="kv"><span>Salidas</span><b>Prioridad I–IV y probabilidad de desenlace crítico a 24 h</b></div>
+        <div class="kv"><span>Umbrales de prioridad</span><b>I ≥ ${fmt(C.MODELO.umbrales.I)} · II ≥ ${fmt(C.MODELO.umbrales.II)} · III ≥ ${fmt(C.MODELO.umbrales.III)}</b></div>
+        <div class="kv"><span>Reglas de seguridad</span><b>Vital crítico → mínimo I · signo de alarma en texto → mínimo II</b></div>
+        <div class="info-box small">Regla del proyecto: ninguna versión llega a producción sin superar el modo sombra y la aprobación del comité de modelo.</div></div>
+      <div class="card"><h3>Matriz de confusión (filas: profesional · columnas: modelo)</h3>
+        ${n ? `<table class="t cm"><tr><th></th>${[1, 2, 3, 4].map(c => `<th>${pr(c).rom}</th>`).join('')}</tr>${m.map((r, i) => `<tr><th>${pr(i + 1).rom}</th>${r.map((x, j) => `<td class="${i === j ? 'd' : j > i ? 'under' : ''}">${x}</td>`).join('')}</tr>`).join('')}</table>
+        <p class="muted small">Celdas rojas: el modelo sugirió una prioridad menos urgente que el profesional (sub-triaje del modelo). n = ${n}.</p>` : '<p class="muted">Sin decisiones aún. Clasifique pacientes o cargue el escenario sintético desde el Tablero.</p>'}</div></div>
+      <div class="card"><h3>Criterios de aceptación (Tabla XX)</h3>${pocos && n ? `<div class="warn-box">Solo hay ${n} decisiones: las métricas son ilustrativas. Para evaluar de verdad se requieren datos históricos autorizados y el modo sombra completo.</div>` : ''}
+        <div class="tscroll"><table class="t"><tr><th>Métrica</th><th>Valor</th><th>Meta</th><th>Resultado</th><th>Propósito</th></tr>
+        ${fila('Recall prioridad I–II', mc.recall, '≥ 0,90', x => x >= 0.9, 'Minimizar el sub-triaje en pacientes con riesgo vital')}
+        ${fila('Precision prioridad I–II', mc.precision, '≥ 0,75', x => x >= 0.75, 'Evitar saturación de tópicos y fatiga de alertas')}
+        ${fila('F1-score macro', f1, '≥ 0,80', x => x >= 0.8, 'Equilibrio en las 4 categorías')}
+        ${fila('AUROC (desenlace crítico 24 h)', au, '≥ 0,85', x => x >= 0.85, `Discriminación del riesgo · ${conDes.length} atenciones con desenlace`)}
+        ${fila('Kappa de Cohen', k, '≥ 0,70', x => x >= 0.7, 'Concordancia con la valoración profesional')}</table></div>
+        <p class="muted small">Referencia de clasificación: decisión del profesional. AUROC: probabilidad del modelo frente al desenlace registrado (UCI, cirugía de emergencia o fallecimiento en 24 h).</p></div>
+      <div class="grid2"><div class="card"><h3>Vigilancia de deriva de datos</h3><p class="muted">Diferencia estandarizada de medias frente a la referencia de entrenamiento (ficticia). Alerta si &gt; 0,5 con n ≥ 5.</p>
+        <table class="t"><tr><th>Variable</th><th>n</th><th>Media actual</th><th>Referencia</th><th>Diferencia</th><th></th></tr>
+        ${drift.map(x => `<tr><td>${esc(x.v)}</td><td class="num">${x.n}</td><td class="num">${fmt(x.mean, 1)}</td><td class="num">${String(REF[x.v][0]).replace('.', ',')}</td><td class="num">${fmt(x.d)}</td><td>${x.d == null ? '<span class="muted">n insuficiente</span>' : x.d > 0.5 ? '<b class="fail">Deriva</b>' : '<span class="pass">Estable</span>'}</td></tr>`).join('')}
+        <tr><td>% motivos con fiebre/dengue</td><td class="num">${reales.length}</td><td class="num">${fiebre == null ? '—' : (fiebre * 100).toFixed(0) + ' %'}</td><td class="num">15 %</td><td></td><td>${fiebre != null && reales.length >= 5 && fiebre > 0.3 ? '<b class="fail">Posible brote</b>' : ''}</td></tr></table>
+        ${drift.some(x => x.d != null && x.d > 0.5) || (fiebre != null && reales.length >= 5 && fiebre > 0.3) ? '<div class="warn-box">Se recomienda notificar al comité de modelo para evaluar el desempeño antes de mantener el modelo en operación.</div>' : ''}</div>
+      <div class="card"><h3>Perfiles de demanda · K-Means</h3><form id="km" class="row" novalidate>${fld('km-k', 'Número de grupos (k)', `<select id="km-k">${opt(['2', '3', '4'], '3')}</select>`)}<button class="btn">Agrupar</button></form><div id="km-out"></div></div></div>
+      <div class="card"><h3>Pipeline · seudonimización en origen</h3><p class="muted">Ejemplo con el último paciente registrado: lo que sale del hospital hacia la nube.</p>${pipelineDemo()}</div>`;
+    $('#km').addEventListener('submit', e => { e.preventDefault(); kmeansUI(reales, Number($('#km-k').value)); });
+    kmeansUI(reales, 3);
+  }
+  function kmeansUI(reales, k) {
+    const vars = ['temp', 'fc', 'spo2', 'pas', 'fr'];
+    const rows = reales.filter(p => vars.every(v => p.vit[v] != null));
+    if (rows.length < Math.max(6, k + 2)) { $('#km-out').innerHTML = `<p class="muted">Se necesitan al menos ${Math.max(6, k + 2)} atenciones con todos los signos (hay ${rows.length}).</p>`; return; }
+    const X = rows.map(p => vars.map(v => (p.vit[v] - REF[v][0]) / REF[v][1]));
+    const r = C.kmeans(X, k); const s = C.silueta(X, r.lab);
+    const grupos = [...Array(k).keys()].map(j => { const ms = rows.filter((_, i) => r.lab[i] === j); const mean = v => ms.reduce((a, p) => a + p.vit[v], 0) / ms.length;
+      const t = mean('temp'), sp = mean('spo2'), fc = mean('fc'); const et = t >= 38 ? 'Cuadro febril' : sp < 93 ? 'Respiratorio / hipoxemia' : fc > 105 ? 'Taquicardia / descompensación' : 'Estable';
+      return { n: ms.length, t, sp, fc, pas: mean('pas'), et }; });
+    $('#km-out').innerHTML = `<p>Coeficiente de silueta: <b>${fmt(s)}</b> · meta ≥ 0,45 ${s != null ? (s >= 0.45 ? '<span class="pass">✓</span>' : '<span class="fail">✗</span>') : ''}</p>
+      <table class="t"><tr><th>Grupo</th><th>n</th><th>T° media</th><th>SpO₂</th><th>FC</th><th>PAS</th><th>Lectura sugerida</th></tr>${grupos.map((g, i) => `<tr><td>${i + 1}</td><td>${g.n}</td><td>${fmt(g.t, 1)}</td><td>${g.sp.toFixed(0)}</td><td>${g.fc.toFixed(0)}</td><td>${g.pas.toFixed(0)}</td><td>${g.et}</td></tr>`).join('')}</table>
+      <p class="muted small">Variables estandarizadas con la referencia de entrenamiento. Un grupo estadístico no es un perfil clínico hasta que lo valide el personal.</p>`;
+  }
+  function pipelineDemo() {
+    const p = S.pacientes.filter(x => !x.sintetico && x.motivo).slice(-1)[0];
+    if (!p) return '<p class="muted">Registre un paciente con motivo de consulta para ver el ejemplo.</p>';
+    return `<table class="t"><tr><th>Campo</th><th>En el hospital (local)</th><th>Hacia la nube</th></tr>
+      <tr><td>Documento</td><td>${esc(p.docTipo)} ${p.nn ? esc(p.docNum) : '••••' + esc(String(p.docNum).slice(-2))}</td><td class="mono">${esc(p.seudo)}</td></tr>
+      <tr><td>Nombre</td><td>${p.nn ? 'No identificado' : 'Registrado'}</td><td>Suprimido</td></tr>
+      <tr><td>Motivo de consulta</td><td>${esc(p.motivo)}</td><td class="mono">${esc(p.motivoFiltrado)}</td></tr>
+      <tr><td>Signos vitales</td><td colspan="2">${C.VITALES.map(d => d.corto + ' ' + (p.vit[d.id] != null ? p.vit[d.id] : '∅ + indicador de faltante')).join(' · ')}</td></tr></table>`;
+  }
+
+  /* =================================================================
+     REGLAS Y AUTOPRUEBAS
+     ================================================================= */
+  const REGLAS = [
+    ['Acceso', 'Usuario y contraseña', 'Ambos obligatorios. Mensaje genérico si fallan (no revela cuál está mal). 3 intentos fallidos → bloqueo de 60 s. Cierre automático tras 15 min sin actividad. Cada rol ve solo sus pestañas.'],
+    ['Acceso', 'Modo sombra / piloto', 'Solo el médico jefe o el comité pueden cambiarlo, con confirmación. En modo sombra la enfermera no ve la sugerencia.'],
+    ['Registro', 'Tipo de documento', 'Obligatorio: DNI, carné de extranjería, pasaporte o sin documento (NN). No se niega la atención por falta de documento.'],
+    ['Registro', 'Número de DNI', 'Obligatorio. Solo números, exactamente 8 dígitos, sin espacios. Rechaza dígitos todos iguales (00000000, 11111111…) y secuencias (12345678, 87654321…).'],
+    ['Registro', 'Dígito verificador', 'Obligatorio. Un carácter (0-9 o A-K). Debe coincidir con el cálculo módulo 11 (pesos 3-2-7-6-5-4-3-2) sobre los 8 dígitos; se acepta la versión numérica o la letra.'],
+    ['Registro', 'Verificación RENIEC', 'Obligatorio pulsar «Verificar». Si el DNI no está en el padrón → no se registra. Si figura como fallecido → bloqueo. Si ya tiene atención activa → bloqueo por duplicado. Si cambia el número tras verificar, debe verificarse otra vez.'],
+    ['Registro', 'Confirmación de identidad', 'Casilla obligatoria: la persona coincide con el documento.'],
+    ['Registro', 'Seguro', 'Se muestra desde el padrón. No asegurado o inactivo: se atiende la emergencia igualmente y queda marcado.'],
+    ['Registro', 'Carné de extranjería', '8 a 12 letras o números, al menos un número, sin espacios ni signos, no todos iguales ni secuencia.'],
+    ['Registro', 'Pasaporte', '6 a 12 letras o números, al menos un número; nacionalidad obligatoria (si es «Otra», se especifica con letras).'],
+    ['Registro', 'Nombres y apellidos', 'Obligatorios (segundo apellido opcional). Solo letras con tildes y ñ, un espacio entre palabras, apóstrofo o guion. 2 a 40 caracteres. Sin números, sin espacios dobles, sin la misma letra 3 veces seguidas.'],
+    ['Registro', 'Fecha de nacimiento', 'Obligatoria. Fecha real del calendario (rechaza 30/02), no futura, edad máxima 120 años.'],
+    ['Registro', 'Sexo', 'Obligatorio. Con DNI se toma del padrón y no se edita.'],
+    ['Registro', 'Paciente NN', 'Sexo, edad aproximada (entero 0-120) y señas (10-200 caracteres, redactadas con palabras) obligatorios. Código temporal NN-AAAAMMDD-###.'],
+    ['Registro', 'Forma de llegada', 'Obligatoria (lista cerrada).'],
+    ['Registro', 'Hora de llegada', 'Obligatoria, formato HH:MM, no futura y como máximo 12 h antes.'],
+    ['Registro', 'Acompañante', 'Obligatorio si el paciente es menor de 18 años. Nombre y apellido (2 palabras como mínimo, solo letras), parentesco y celular.'],
+    ['Registro', 'Celular', '9 dígitos, empieza con 9, solo números, no todos repetidos.'],
+    ['Clínico', 'Motivo de consulta', 'Obligatorio. 10 a 500 caracteres, al menos 2 palabras, al menos 60 % letras, sin los signos < > { } \\, sin el mismo carácter 5 veces seguidas, no la misma palabra repetida. Los nombres, DNI y celulares escritos se reemplazan por [NOMBRE]/[DOC]/[TEL] antes de ir a la nube.'],
+    ['Clínico', 'Gestante', 'Obligatorio si el sexo es femenino y la edad está entre 10 y 55 años.'],
+    ['Clínico', 'Signos vitales', 'Cada uno obligatorio o marcado «No medido» con motivo (máximo 3 no medidos). Solo números; sin notación científica. Enteros salvo temperatura (1 decimal, acepta coma).'],
+    ['Clínico', 'Rangos imposibles (se rechazan)', C.VITALES.map(d => `${d.corto} ${d.min}–${d.max} ${d.unidad}`).join(' · ')],
+    ['Clínico', 'Reglas cruzadas', 'Diastólica menor que sistólica y diferencia ≥ 10 mmHg. Si se registra una presión, se registra la otra.'],
+    ['Clínico', 'Valores críticos', 'SpO₂ < 85, PAS < 80 o ≥ 220, FC < 40 o > 150, FR < 8 o > 35, T° < 34 o ≥ 41, Glasgow ≤ 8, PAD ≥ 130: requieren confirmar que se volvieron a medir y fuerzan Prioridad I.'],
+    ['Decisión', 'Aceptar sugerencia', 'Registra usuario, hora, versión del modelo y modo.'],
+    ['Decisión', 'Modificar prioridad', 'Nueva prioridad distinta de la sugerida, motivo (lista) y detalle de 15 a 300 caracteres. Si es menos urgente que la sugerida, confirmación obligatoria de reevaluación (riesgo de sub-triaje).'],
+    ['Decisión', 'Modo sombra', 'La enfermera elige la prioridad sin ver la sugerencia; ambas se guardan para el comité.'],
+    ['Atención', 'Revaloración', 'Prioridad distinta de la actual y motivo de 15 a 300 caracteres. Aviso «Revaluar ahora» al superar el tiempo de referencia (II 10 min, III 20 min, IV 60 min demo).'],
+    ['Atención', 'Envío a tópico', 'Solo con tópico libre. Si hay pacientes más urgentes esperando, pide confirmación y queda en auditoría.'],
+    ['Atención', 'Anulación', 'Solo antes de clasificar, con motivo de 15 a 200 caracteres. No se borra: queda en auditoría.'],
+    ['Seguimiento', 'Desenlace', 'Lista cerrada, hora posterior a la clasificación y no futura; una sola vez por paciente. Crítico = UCI, cirugía de emergencia o fallecimiento dentro de 24 h.'],
+    ['Seguimiento', 'Comprensión (H4)', 'Respuesta obligatoria: Sí / No / No aplica. «No aplica» no cuenta en el porcentaje.'],
+    ['Jefatura', 'Línea base H1', 'Entero de 1 a 600 min; solo el médico jefe.'],
+    ['Seguridad', 'Auditoría', 'Cada acción genera un evento encadenado por SHA-256; la verificación detecta cualquier alteración. Solo se guardan seudónimos (HMAC).'],
+    ['Seguridad', 'Entrada maliciosa', 'Los textos libres rechazan < > { } \\. Además, todo texto se muestra escapado: aunque llegara un <script>, se vería como texto y no se ejecutaría.'],
+    ['Seguridad', 'Reinicio', 'Solo el médico jefe, escribiendo REINICIAR.']
+  ];
+  const PRUEBAS = () => {
+    const V = Object.fromEntries(C.VITALES.map(v => [v.id, v])); const n = ahora();
+    return [
+      ['DNI 00000000 con dígito 6', () => !C.validarDNI('00000000', '6').ok, 'Rechazado'],
+      ['DNI 11111111', () => !C.validarDNI('11111111', 'A').ok, 'Rechazado'],
+      ['DNI 12345678 con su dígito', () => !C.validarDNI('12345678', '1').ok, 'Rechazado'],
+      ['DNI 87654321', () => !C.validarDNI('87654321', '5').ok, 'Rechazado'],
+      ['DNI de 7 dígitos', () => !C.validarDNI('4587231', '3').ok, 'Rechazado'],
+      ['DNI de 9 dígitos', () => !C.validarDNI('458723160', '3').ok, 'Rechazado'],
+      ['DNI con letra', () => !C.validarDNI('4587A316', '3').ok, 'Rechazado'],
+      ['DNI con espacio', () => !C.validarDNI('4587 316', '3').ok, 'Rechazado'],
+      ['DNI sin dígito verificador', () => !C.validarDNI('45872316', '').ok, 'Rechazado'],
+      ['DNI con dígito verificador incorrecto', () => !C.validarDNI('45872316', '4').ok, 'Rechazado'],
+      ['DNI válido 45872316-3', () => C.validarDNI('45872316', '3').ok, 'Aceptado'],
+      ['DNI válido con letra 45872316-H', () => C.validarDNI('45872316', 'H').ok, 'Aceptado'],
+      ['DNI válido no presente en padrón (42388604-3)', () => C.validarDNI('42388604', '3').ok && !C.buscarPadron('42388604'), 'Formato válido, pero no se registra'],
+      ['Nombre con número', () => !C.validarNombre('Juan2', 'el nombre').ok, 'Rechazado'],
+      ['Nombre con <script>', () => !C.validarNombre('<script>', 'el nombre').ok, 'Rechazado'],
+      ['Nombre «Aaana»', () => !C.validarNombre('Aaana', 'el nombre').ok, 'Rechazado'],
+      ['Nombre compuesto con apóstrofo', () => C.validarNombre("María José O'Neill", 'el nombre').ok, 'Aceptado'],
+      ['Celular de 8 dígitos', () => !C.validarCelular('98765432', true).ok, 'Rechazado'],
+      ['Celular que no empieza con 9', () => !C.validarCelular('887654321', true).ok, 'Rechazado'],
+      ['Celular 999999999', () => !C.validarCelular('999999999', true).ok, 'Rechazado'],
+      ['Fecha 30/02', () => !C.validarFechaNac('2001-02-30', n).ok, 'Rechazado'],
+      ['Fecha futura', () => !C.validarFechaNac((n.getFullYear() + 1) + '-01-01', n).ok, 'Rechazado'],
+      ['Edad de 130 años', () => !C.validarFechaNac((n.getFullYear() - 130) + '-01-01', n).ok, 'Rechazado'],
+      ['SpO₂ 101 %', () => !C.validarVital(V.spo2, '101').ok, 'Rechazado'],
+      ['Temperatura 29,9 °C', () => !C.validarVital(V.temp, '29,9').ok, 'Rechazado'],
+      ['Temperatura 36,9 (con coma)', () => C.validarVital(V.temp, '36,9').value === 36.9, 'Aceptado'],
+      ['Temperatura con 2 decimales', () => !C.validarVital(V.temp, '36.95').ok, 'Rechazado'],
+      ['FC con decimal', () => !C.validarVital(V.fc, '80.5').ok, 'Rechazado'],
+      ['FC «8o» (letra o)', () => !C.validarVital(V.fc, '8o').ok, 'Rechazado'],
+      ['FC 1e2', () => !C.validarVital(V.fc, '1e2').ok, 'Rechazado'],
+      ['FC negativa', () => !C.validarVital(V.fc, '-80').ok, 'Rechazado'],
+      ['Glasgow 16', () => !C.validarVital(V.glasgow, '16').ok, 'Rechazado'],
+      ['PAD mayor que PAS', () => !!C.validarVitalesCruzado({ pas: 90, pad: 95 }).pad, 'Rechazado'],
+      ['Motivo «dolor»', () => !C.validarMotivo('dolor').ok, 'Rechazado'],
+      ['Motivo con <script>', () => !C.validarMotivo('<script>alert(1)<\/script> falta de aire').ok, 'Rechazado'],
+      ['Motivo solo números', () => !C.validarMotivo('1234567890 12345').ok, 'Rechazado'],
+      ['Motivo «aaaaaaaaaa»', () => !C.validarMotivo('aaaaaaaaaaaa bb').ok, 'Rechazado'],
+      ['Motivo misma palabra repetida', () => !C.validarMotivo('dolor dolor dolor dolor').ok, 'Rechazado'],
+      ['SpO₂ 80 → Prioridad I por regla', () => C.predecir({ edad: 40, vit: { spo2: 80 }, hc: { cie: [] }, motivo: 'cansancio general' }).prioridad === 1, 'Prioridad I'],
+      ['Signos de alarma de dengue → mínimo II', () => C.predecir({ edad: 30, vit: { temp: 38.6 }, hc: { cie: [] }, motivo: 'fiebre con petequias' }).prioridad <= 2, 'Prioridad ≤ II'],
+      ['Caso leve → Prioridad IV', () => C.predecir({ edad: 27, vit: { pas: 118, pad: 76, fc: 80, fr: 16, temp: 37.1, spo2: 98, glasgow: 15, eva: 2 }, hc: { cie: [] }, motivo: 'Dolor de garganta y resfrío' }).prioridad === 4, 'Prioridad IV'],
+      ['A* pone primero a Prioridad I', () => { const ps = [{ prior: 3, llegada: 0 }, { prior: 1, llegada: 5 }, { prior: 2, llegada: 1 }]; return ps[C.aEstrella(ps, [0]).orden[0]].prior === 1; }, 'Correcto'],
+      ['A* costo ≤ orden de llegada', () => { const ps = [{ prior: 3, llegada: 0 }, { prior: 2, llegada: 5 }, { prior: 4, llegada: 1 }, { prior: 1, llegada: 8 }]; return C.aEstrella(ps, [10, 12]).costo <= C.simularOrden(ps, [0, 2, 1, 3], [10, 12]).costo; }, 'Correcto'],
+      ['Kappa con acuerdo perfecto = 1', () => C.kappa([{ ref: 1, pred: 1 }, { ref: 3, pred: 3 }]) === 1, '1,00'],
+      ['SHA-256("abc") estándar', () => C.sha256('abc') === 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad', 'Coincide'],
+      ['Filtro de texto libre', () => C.filtrarTexto('Rosa trae DNI 45872316', ['Rosa']) === '[NOMBRE] trae DNI [DOC]', 'Coincide'],
+      ['Escape de HTML', () => C.esc('<img onerror=x>') === '&lt;img onerror=x&gt;', 'Coincide'],
+      ['Integridad de la auditoría actual', () => verificarCadena().ok, 'Íntegra']
+    ];
+  };
+  function rReglas() {
+    $('#main').innerHTML = `<h2>Reglas de validación y autopruebas</h2><p class="muted">Cada regla de esta tabla está programada en el aplicativo. Las autopruebas ejecutan los casos que suele probar un evaluador.</p>
+      <div class="card"><div class="row" style="justify-content:space-between;align-items:center"><h3 style="margin:0">Autopruebas</h3><button class="btn pri" data-act="autotest">Ejecutar autopruebas</button></div><div id="at-out"></div></div>
+      <div class="card"><h3>Reglas por campo</h3><div class="tscroll"><table class="t"><tr><th>Módulo</th><th>Campo / función</th><th>Regla</th></tr>${REGLAS.map(r => `<tr><td>${esc(r[0])}</td><td><b>${esc(r[1])}</b></td><td>${esc(r[2])}</td></tr>`).join('')}</table></div></div>`;
+  }
+  handlers.autotest = () => {
+    const res = PRUEBAS().map(([n, f, e]) => { let okk = false; try { okk = !!f(); } catch (x) { okk = false; } return { n, okk, e }; });
+    const pasa = res.filter(r => r.okk).length;
+    $('#at-out').innerHTML = `<p style="margin-top:10px"><b class="${pasa === res.length ? 'pass' : 'fail'}">${pasa} de ${res.length} pruebas superadas</b></p><div class="tscroll"><table class="t"><tr><th>Caso</th><th>Esperado</th><th>Resultado</th></tr>${res.map(r => `<tr><td>${esc(r.n)}</td><td>${esc(r.e)}</td><td>${r.okk ? '<span class="pass">✓ correcto</span>' : '<span class="fail">✗ falló</span>'}</td></tr>`).join('')}</table></div>`;
+    auditar('Ejecución de autopruebas', null, `${pasa}/${res.length}`); guardar();
+  };
+
+  /* =================================================================
+     GUÍA
+     ================================================================= */
+  function rGuia() {
+    $('#main').innerHTML = `<h2>Guía del prototipo</h2>
+      <div class="grid2"><div class="card"><h3>Usuarios de prueba (ficticios)</h3><table class="t"><tr><th>Usuario</th><th>Contraseña</th><th>Rol</th></tr>${C.USUARIOS.map(u => `<tr><td class="mono">${esc(u.usuario)}</td><td class="mono">${esc(u.clave)}</td><td>${esc(C.ROLES[u.rol].nombre)}</td></tr>`).join('')}</table></div>
+      <div class="card"><h3>Flujo</h3><ol style="margin:0;padding-left:18px"><li>Registro por documento (DNI verificado en el padrón simulado).</li><li>La historia clínica se carga sola.</li><li>Motivo de consulta y signos vitales.</li><li>Sugerencia con motivos (o decisión ciega en modo sombra).</li><li>Decisión del profesional: acepta o modifica con motivo.</li><li>Cola ordenada con A*, explicación al paciente, tablero, desenlace y auditoría.</li></ol></div></div>
+      <div class="card"><h3>Padrón ficticio para pruebas (simula RENIEC + historia clínica)</h3><div class="tscroll"><table class="t"><tr><th>DNI</th><th>Dígito</th><th>Nombre</th><th>Edad</th><th>Caso que permite probar</th></tr>
+        ${C.PADRON.map(p => { const dv = C.dvDNI(p.dni); const e = C.edad(p.fnac, ahora()); const caso = p.fallecido ? 'Titular fallecido: debe bloquearse' : p.seguro !== 'Activo' ? 'No asegurado: se atiende igual' : e < 18 ? 'Menor de edad: exige acompañante' : p.sexo === 'F' && e <= 55 ? 'Mujer en edad fértil: pregunta «¿Gestante?»' : p.hc && p.hc.cie.length ? 'Antecedentes relevantes' : 'Sin antecedentes'; return `<tr><td class="mono">${p.dni}</td><td class="mono">${dv.numero} o ${dv.letra}</td><td>${esc(p.nombres + ' ' + p.ap1 + ' ' + p.ap2)}</td><td>${e}</td><td>${caso}</td></tr>`; }).join('')}</table></div>
+        <p class="muted">Cualquier otro DNI con dígito verificador correcto (por ejemplo, 42388604-3) se rechaza por no figurar en el padrón. Todos los nombres son inventados.</p></div>
+      <div class="card"><h3>Qué es real y qué es simulado</h3><table class="t"><tr><th>Componente</th><th>En este prototipo</th><th>En el sistema real (APF3)</th></tr>
+        <tr><td>Verificación de identidad</td><td>Dígito verificador real + padrón ficticio</td><td>Servicio de consulta autorizado de RENIEC</td></tr>
+        <tr><td>Historia clínica</td><td>Datos ficticios locales</td><td>Historia clínica digital vía HL7 FHIR</td></tr>
+        <tr><td>Modelo</td><td>Logit con pesos ilustrativos + reglas</td><td>XGBoost + TF-IDF entrenado con datos autorizados, en contenedor local (FastAPI)</td></tr>
+        <tr><td>Seudonimización</td><td>HMAC-SHA256 con clave de demostración</td><td>Clave institucional custodiada por el hospital</td></tr>
+        <tr><td>Auditoría</td><td>Cadena SHA-256 en el navegador</td><td>Registro inmutable en servidor</td></tr>
+        <tr><td>Almacenamiento</td><td>Navegador local (se borra con «Reiniciar demo»)</td><td>Base local + nube cifrada (Medallion, MLflow)</td></tr></table></div>`;
+  }
+
+  /* ---------------- arranque ---------------- */
+  cargar(); render();
+  window.__app = { estado: () => S }; // para pruebas automatizadas
+})();
+</script>
+</body></html>

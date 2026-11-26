@@ -1,0 +1,25 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+.idea/
+.vscode/
+.metadata
+pubspec.lock
+
+# Plataformas generadas con `flutter create .`
+android/
+ios/
+web/
+windows/
+linux/
+macos/
+
+# Sistema
+.DS_Store
+Thumbs.db
